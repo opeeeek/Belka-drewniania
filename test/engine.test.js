@@ -166,5 +166,20 @@ const ck = (R, id) => R.checks.find(c => c.id === id);
   const r = E.designSection(S, { eta: 100 });
   truthy(r.ok, `Dobór przekroju: ${r.b}×${r.h} (η = ${r.eta && r.eta.toFixed(3)}, prób: ${r.tried})`);
 }
+// 15. Słup pod podporą i stopa: Johansen (8.11) dla blachy wpuszczanej, n_ef (8.34), k_c (6.25)
+{
+  const S = base(); S.geom.L = 4; S.loads.perm = [{ name: 'q', q: 2 }];
+  S.supCfg = [{ col: { on: true, b: 140, h: 140, L: 3, d: 12, grade: 'S235', type: 'slot', ts: 8, n: 2, m: 2, a1: 84 } }];
+  const R = E.calc(S), o = R.colData[0], F = o.F0;
+  const d = 12, rho = 350, fh = 0.082 * (1 - 0.01 * d) * rho, My = 0.3 * 360 * Math.pow(d, 2.6), t = (140 - 8 - 2) / 2;
+  near(F.fh, fh, 1e-9, 'Stopa: f_h,0,k (8.32)');
+  near(F.My, My, 1e-9, 'Stopa: M_y,Rk (8.30)');
+  near(F.Fv, Math.min(fh * t * d, fh * t * d * (Math.sqrt(2 + 4 * My / (fh * d * t * t)) - 1), 2.3 * Math.sqrt(My * fh * d)), 1e-9, 'Stopa: F_v,Rk (8.11) – blacha wpuszczana');
+  near(o.nef0, Math.min(2, Math.pow(2, 0.9) * Math.pow(84 / (13 * d), 0.25)), 1e-9, 'Stopa: n_ef (8.34)');
+  const lr = 3000 / (140 / Math.sqrt(12)) / Math.PI * Math.sqrt(21 / 7400), k = 0.5 * (1 + 0.2 * (lr - 0.3) + lr * lr);
+  near(o.by.kc, 1 / (k + Math.sqrt(k * k - lr * lr)), 1e-9, 'Słup: k_c (6.25)–(6.29)');
+  const ck = R.checks.find(c => c.id === 'colbk0');
+  near(ck.d.worst.buck.Nc, 2 * 4 / 2 * 1.35 + 1.35 * 4.2 * 0.14 * 0.14 * 3, 1e-6, 'Słup: N_Ed = R_Ed + γ_G·ciężar słupa');
+}
 console.log(`\n${n - bad}/${n} testów zaliczonych`);
 process.exit(bad ? 1 : 0);

@@ -258,6 +258,34 @@ function normItem(it, kind) {
   return o;
 }
 
+/* --------------------------------------------- słup pod podporą i stopa (połączenie z fundamentem) */
+// gatunki stali łączników: f_u,k [MPa]; blachy: f_y, f_u [MPa]
+const FAST_STEEL = { '4.6': { n: 'śruby 4.6', fu: 400 }, '5.6': { n: 'śruby 5.6', fu: 500 }, '8.8': { n: 'śruby 8.8', fu: 800 }, 'S235': { n: 'sworznie S235', fu: 360 }, 'S355': { n: 'sworznie S355', fu: 490 } };
+const PLATE_STEEL = { S235: { fy: 235, fu: 360 }, S275: { fy: 275, fu: 430 }, S355: { fy: 355, fu: 490 } };
+// beton fundamentu: f_ck [MPa]
+const CONC_FCK = { 'C12/15': 12, 'C16/20': 16, 'C20/25': 20, 'C25/30': 25, 'C30/37': 30, 'C35/45': 35, 'C40/50': 40 };
+const COL_DEF = { on: false, cls: '', b: 140, h: 140, L: 3.0, ky: 1.0, kz: 1.0, e: 0, Hadd: 0, Hreac: false,
+  type: 'slot', fast: 'dowel', d: 12, grade: 'S235', n: 2, m: 2, a1: 84, a2: 60, a3: 100, a4: 40, ts: 8, steel: 'S235', e1p: 40,
+  pa: 250, pb: 250, conc: 'C20/25', na: 2, NRd: 12, VRd: 9, gap: 30 };
+function normCol(c0) {
+  const c = Object.assign({}, COL_DEF, c0 && typeof c0 === 'object' ? c0 : {});
+  c.on = c.on === true;
+  c.cls = c.cls && (MATS[c.cls] || c.cls === 'U') ? c.cls : '';
+  ['b', 'h'].forEach(k => { c[k] = clamp(num(c[k], COL_DEF[k]), 40, 1500); });
+  c.L = clamp(num(c.L, 3), 0.3, 30); c.ky = clamp(num(c.ky, 1), 0.3, 5); c.kz = clamp(num(c.kz, 1), 0.3, 5);
+  c.e = clamp(num(c.e, 0), 0, 1000); c.Hadd = Math.max(0, num(c.Hadd, 0)); c.Hreac = c.Hreac === true;
+  c.type = c.type === 'side' ? 'side' : 'slot'; c.fast = c.fast === 'bolt' ? 'bolt' : 'dowel';
+  c.d = [6, 8, 10, 12, 14, 16, 20, 24].includes(+c.d) ? +c.d : 12;
+  c.grade = FAST_STEEL[c.grade] ? c.grade : (c.fast === 'bolt' ? '4.6' : 'S235');
+  c.n = clamp(Math.round(num(c.n, 2)), 1, 12); c.m = clamp(Math.round(num(c.m, 2)), 1, 8);
+  ['a1', 'a2', 'a3', 'a4', 'e1p'].forEach(k => { c[k] = clamp(num(c[k], COL_DEF[k]), 5, 1000); });
+  c.ts = clamp(num(c.ts, 8), 2, 40); c.steel = PLATE_STEEL[c.steel] ? c.steel : 'S235';
+  c.pa = clamp(num(c.pa, 250), 50, 2000); c.pb = clamp(num(c.pb, 250), 50, 2000);
+  c.conc = CONC_FCK[c.conc] ? c.conc : 'C20/25';
+  c.na = clamp(Math.round(num(c.na, 2)), 1, 12); c.NRd = Math.max(0, num(c.NRd, 12)); c.VRd = Math.max(0, num(c.VRd, 9)); c.gap = clamp(num(c.gap, 30), 0, 500);
+  return c;
+}
+
 // uzupełnia brakujące pola wartościami domyślnymi i rzutuje liczby
 function normalize(S0) {
   const D = defaultState();
@@ -307,6 +335,7 @@ function normalize(S0) {
     return {
       dof, kv: optPos(c.kv), kr: optPos(c.kr), t: optPos(c.t), a: optPos(c.a), direct: c.direct !== false, kc90: optPos(c.kc90),
       notch: { on: nt.on === true, side: nt.side === 'top' ? 'top' : 'bot', hef: optPos(nt.hef), x: optPos(nt.x), i: optPos(nt.i) },
+      col: normCol(c.col),
     };
   });
   S.nodes = (Array.isArray(S.nodes) ? S.nodes : []).filter(n => n && typeof n === 'object').slice(0, 40)
@@ -1076,11 +1105,12 @@ function runChecks(R) {
     if (G.buck) C.push(mkCheck({ id: `buck${s.i}`, grp: 'SGN – stateczność', name: 'Wyboczenie przy ściskaniu ze zginaniem (6.23), (6.24)' + segName(s), ref: '6.3.2', seg: s.i, ratio: G.buck.ratio, Ed: G.buck.ratio, Rd: 1, d: Object.assign({ b: sd.buck }, G.buck), combo: cmb(G.buck.c), note: `k_c,y = ${fmtN(Math.round(sd.buck.y.kc * 1000) / 1000)}, k_c,z = ${fmtN(Math.round(sd.buck.z.kc * 1000) / 1000)}` }));
   });
   supChecks(R);
+  colChecks(R);
   slsChecks(R);
   if (S.fire.on) fireChecks(R);
   infoChecks(R);
   // kolejność: grupy sprawdzeń (w grupie – kolejność odcinków / podpór)
-  const GO = ['SGN – zginanie', 'SGN – ścinanie i skręcanie', 'SGN – docisk i podcięcia', 'SGN – stateczność', 'SGU – ugięcia', 'SGU – drgania', 'Pożar', 'Konstrukcja i wykonanie'];
+  const GO = ['SGN – zginanie', 'SGN – ścinanie i skręcanie', 'SGN – docisk i podcięcia', 'SGN – stateczność', 'Słup', 'SGU – ugięcia', 'SGU – drgania', 'Pożar', 'Konstrukcja i wykonanie'];
   const gr = c => { const i = GO.findIndex(g => c.grp.startsWith(g)); return i < 0 ? GO.length : i; };
   C.forEach((c, i) => { c._o = i; });
   C.sort((a, b) => gr(a) - gr(b) || a._o - b._o);
@@ -1289,6 +1319,129 @@ function infoChecks(R) {
   if (S.geom.n > 1) C.push(mkCheck({ id: 'nply', grp: 'Konstrukcja i wykonanie', name: `Przekrój złożony z ${S.geom.n} elementów ${Math.round(S.geom.b)}×${Math.round(S.geom.h)} mm – przyjęto współpracę jak przekroju litego; wymagane połączenie elementów (gwoździe, śruby, wkręty) zapewniające współpracę`, ref: '6.6', ratio: NaN, status: 'info' }));
 }
 
+/* ------------------------------------------- słup drewniany i połączenie z fundamentem */
+// nośność łącznika trzpieniowego (sworzeń / śruba) w połączeniu stal–drewno, na jedną płaszczyznę ścinania (8.2.3)
+// alpha – kąt siły do włókien [°]; zwraca { Fv, modes, fh, My, Fax, t }
+function colFastener(c, m, alpha, bTot) {
+  const d = c.d, fu = FAST_STEEL[c.grade].fu, rho = m.rhok, a = alpha * Math.PI / 180;
+  const fh0 = 0.082 * (1 - 0.01 * d) * rho;                                                     // (8.32)
+  const k90 = m.fam === 'LVL' ? 1.30 + 0.015 * d : m.fam === 'D' ? 0.90 + 0.015 * d : 1.35 + 0.015 * d;   // (8.33)
+  const fh = fh0 / (k90 * Math.sin(a) ** 2 + Math.cos(a) ** 2);
+  const My = 0.3 * fu * Math.pow(d, 2.6);                                                       // (8.30) [Nmm]
+  // efekt liny: sworznie – 0; śruby – nośność podkładki 3·f_c,90,k·A_w (Ø_w = 3d) lub nośność śruby na rozciąganie
+  let Fax = 0;
+  if (c.fast === 'bolt') { const Aw = Math.PI / 4 * ((3 * d) ** 2 - (d + 1) ** 2), As = 0.78 * Math.PI * d * d / 4; Fax = Math.min(3 * m.fc90k * Aw, 0.9 * fu * As); }
+  const lim = (j, ax) => j + Math.min(ax / 4, c.fast === 'bolt' ? 0.25 * j : 0);              // 8.2.2(2): efekt liny ≤ 25% części Johansena
+  let modes, t;
+  if (c.type === 'slot') {
+    // blacha wpuszczana (element środkowy), dwie płaszczyzny ścinania (8.11)
+    t = Math.max(1, (bTot - c.ts - 2) / 2);
+    const f = fh * t * d, g0 = fh * t * d * (Math.sqrt(2 + 4 * My / (fh * d * t * t)) - 1), h0 = 2.3 * Math.sqrt(My * fh * d);
+    modes = { f, g: lim(g0, Fax), h: lim(h0, Fax) };
+  } else {
+    // dwie blachy zewnętrzne, drewno w środku (8.12 – blachy cienkie, 8.13 – grube; interpolacja dla 0,5d < t_s < d)
+    t = bTot;
+    const j = 0.5 * fh * t * d, k0 = 1.15 * Math.sqrt(2 * My * fh * d), m0 = 2.3 * Math.sqrt(My * fh * d);
+    const thin = Math.min(j, lim(k0, Fax)), thick = Math.min(j, lim(m0, Fax));
+    const r = clamp((c.ts - 0.5 * d) / (0.5 * d), 0, 1);
+    modes = { j, k: lim(k0, Fax), m: lim(m0, Fax), thinThick: r };
+    modes.mix = thin + (thick - thin) * r;
+  }
+  const Fv = c.type === 'slot' ? Math.min(modes.f, modes.g, modes.h) : modes.mix;
+  return { Fv, modes, fh, fh0, k90, My, Fax, t, d, fu };
+}
+function colChecks(R) {
+  const { S, md, cb, mt } = R, C = R.checks;
+  const ulsAll = cb.uls.concat(cb.acc);
+  R.colData = [];
+  md.sups.forEach((p, k) => {
+    const c = (S.supCfg[k] && S.supCfg[k].col) || null;
+    if (!c || !c.on) return;
+    const m = c.cls === 'U' || !c.cls ? mt.m : MATS[c.cls] || mt.m, F = FAM[m.fam] || FAM.C;
+    const gMt = S.coef.gM !== '' && S.coef.gM > 0 ? S.coef.gM : F.gM, gMc = 1.3;
+    const sec = secProps(c.b, c.h, 1);
+    // smukłość: płaszczyzna y – wymiar h (moment od mimośrodu), płaszczyzna z – wymiar b
+    const E005 = m.E005 * 1000, bc = F.betaC;
+    const buck = (lc, i) => { const lam = lc / i, lr = lam / Math.PI * Math.sqrt(m.fc0k / E005), kk = 0.5 * (1 + bc * (lr - 0.3) + lr * lr); return { lc, lam, lr, k: kk, kc: lr <= 0.3 ? 1 : 1 / (kk + Math.sqrt(kk * kk - lr * lr)) }; };
+    const by = buck(c.ky * c.L * 1000, sec.h / Math.sqrt(12)), bz = buck(c.kz * c.L * 1000, sec.b / Math.sqrt(12));
+    const gam = Math.round(m.rhom / 10) / 10, Gcol = gam * sec.A * 1e-6 * c.L;                   // ciężar słupa [kN]
+    const khy = khOf(m.fam, m, sec.h);
+    const fst = FAST_STEEL[c.grade], pl = PLATE_STEEL[c.steel];
+    const F0 = colFastener(c, m, 0, c.b), F90 = colFastener(c, m, 90, c.b);
+    const nsp = 2, nef0 = Math.min(c.n, Math.pow(c.n, 0.9) * Math.pow(c.a1 / (13 * c.d), 0.25));   // (8.34)
+    const nTot = c.n * c.m;
+    const Anet = c.type === 'slot' ? sec.A - (c.ts + 2) * c.h : sec.A;
+    const fck = CONC_FCK[c.conc], fcd = fck / 1.4, fjd = 2 / 3 * fcd;                              // EN 1993-1-8 6.2.5 (β_j = 2/3, k_j = 1)
+    const d0 = c.fast === 'bolt' ? c.d + 1 : c.d;
+    const alphaB = Math.min(c.e1p / (3 * d0), fst.fu / pl.fu, 1), Fb1 = 2.5 * alphaB * pl.fu * c.d * c.ts / 1.25;   // EN 1993-1-8 tab. 3.4 [N] na blachę
+    const nPl = c.type === 'slot' ? 1 : 2;
+    // ścinanie blokowe (zał. A) przy wyrywaniu: dla każdej z dwóch warstw drewna (blacha wpuszczana) lub całego przekroju
+    const Lt = Math.max(0, (c.m - 1) * (c.a2 - c.d)), Lv = 2 * Math.max(0, (c.n - 1) * (c.a1 - c.d) + c.a3 - c.d / 2);
+    const o = { k, p, c, m, F, sec, by, bz, Gcol, gam, khy, F0, F90, nef0, nTot, Anet, fck, fcd, fjd, alphaB, Fb1, nPl, gMt, gMc, Lt, Lv, worst: {} };
+    const W = sec.b * sec.h * sec.h / 6;
+    const upd = (key, r, d) => { if (!o.worst[key] || r > o.worst[key].ratio) o.worst[key] = Object.assign({ ratio: r }, d); };
+    ulsAll.forEach(cmb => {
+      const rr = cmb.reac[k];
+      const Rmx = Math.max(0, rr.mx), Rmn = rr.mn;
+      const Nc = Rmx + cmb.gs * Gcol, Ntop = Rmx, Nt = Math.max(0, -Rmn - cmb.gi * Gcol);
+      let H = c.Hadd;
+      if (c.Hreac) { const hx = combReac(R.st, cmb, k, 'Rx'), hz = combReac(R.st, cmb, k, 'Rz'); H += Math.hypot(Math.max(Math.abs(hx.mx), Math.abs(hx.mn)), Math.max(Math.abs(hz.mx), Math.abs(hz.mn))); }
+      const kmod = cmb.kmod, gM = cmb.type === 'ACC' ? cmb.gM : gMt, gMconn = cmb.type === 'ACC' ? cmb.gM : gMc;
+      const fc0d = kmod * m.fc0k / gM, fmd = kmod * m.fmk * khy * mt.ksys / gM;
+      // słup: ściskanie z wyboczeniem i mimośrodem (6.23, 6.24)
+      const sc = Nc * 1e3 / sec.A, M = Ntop * c.e / 1000, sm = M * 1e6 / W;
+      const r1 = sc / (by.kc * fc0d) + sm / fmd, r2 = sc / (bz.kc * fc0d) + mt.km * sm / fmd;
+      upd('buck', Math.max(r1, r2), { cmb, Nc, Ntop, M, sc, sm, fc0d, fmd, r1, r2, kmod, gM });
+      // docisk czoła słupa na blachę podstawy (6.1.4)
+      const sce = Nc * 1e3 / Anet; upd('end', sce / fc0d, { cmb, Nc, sce, fc0d, kmod, gM });
+      // łączniki: wyrywanie (wzdłuż włókien) i siła pozioma (w poprzek włókien)
+      const RN = kmod * F0.Fv / gMconn * nsp * nef0 * c.m / 1e3, RH = kmod * F90.Fv / gMconn * nsp * nTot / 1e3;
+      const rc = (Nt > 0 ? (Nt / RN) ** 2 : 0) + (H > 0 ? (H / RH) ** 2 : 0);
+      upd('conn', rc, { cmb, Nt, H, RN, RH, kmod, gMconn });
+      // ścinanie blokowe (zał. A) – tylko przy wyrywaniu
+      if (Nt > 0) {
+        const t1 = F0.t, mo = F0.modes, tef = c.type === 'slot' ? (mo.f <= Math.min(mo.g, mo.h) ? t1 : mo.g <= mo.h ? t1 * (Math.sqrt(2 + 4 * F0.My / (F0.fh * c.d * t1 * t1)) - 1) : 2 * Math.sqrt(F0.My / (F0.fh * c.d))) : 0.4 * t1;
+        const nLay = c.type === 'slot' ? 2 : 1, Anet_t = Lt * t1, Anet_v = c.type === 'slot' && mo.f <= Math.min(mo.g, mo.h) ? Lv * t1 : Lv / 2 * (Lt + 2 * tef);
+        const Fbs = nLay * Math.max(1.5 * Anet_t * m.ft0k, 0.7 * Anet_v * m.fvk) * kmod / gMconn / 1e3;
+        upd('block', Nt / Fbs, { cmb, Nt, Fbs, Anet_t, Anet_v, tef, kmod, gMconn });
+      }
+      // docisk łącznika na blachę (EN 1993-1-8, tab. 3.4)
+      const F1 = Math.hypot(Nt, H) / nTot / nPl;
+      upd('pbear', F1 / (Fb1 / 1e3), { cmb, F1 });
+      // fundament: docisk betonu pod blachą podstawy i kotwy
+      upd('conc', Nc * 1e3 / (c.pa * c.pb) / fjd, { cmb, Nc, s: Nc * 1e3 / (c.pa * c.pb) });
+      const bN = c.NRd > 0 ? Nt / (c.na * c.NRd) : (Nt > 0 ? 9.99 : 0), bV = c.VRd > 0 ? H / (c.na * c.VRd) : (H > 0 ? 9.99 : 0);
+      upd('anch', Math.pow(bN, 1.5) + Math.pow(bV, 1.5), { cmb, Nt, H, bN, bV });
+    });
+    // odstępy łączników (tab. 8.5 śruby, 8.6 sworznie); α = 0° (wyrywanie) i 90° (siła pozioma)
+    const dd = c.d, bolt = c.fast === 'bolt', hasH = Object.values(o.worst).some(w => w.H > 0) || c.Hadd > 0;
+    const req = {
+      a1: Math.max(bolt ? 5 * dd : 5 * dd, hasH ? (bolt ? 4 : 3) * dd : 0),
+      a2: bolt ? 4 * dd : 3 * dd,
+      a3: Math.max(7 * dd, 80),
+      a4: hasH ? Math.max(4 * dd, 3 * dd) : 3 * dd,
+    };
+    const act = { a1: c.n > 1 ? c.a1 : Infinity, a2: c.m > 1 ? c.a2 : Infinity, a3: c.a3, a4: c.a4 };
+    const fit = (c.m - 1) * c.a2 + 2 * c.a4 <= c.h + 1e-6;
+    o.req = req; o.act = act; o.fit = fit;
+    const spR = Math.max(...Object.keys(req).map(q => req[q] / act[q]), fit ? 0 : 1.01 * ((c.m - 1) * c.a2 + 2 * c.a4) / c.h);
+    R.colData.push(o);
+    const nm = `słup pod podporą ${p.label} (${Math.round(c.b)}×${Math.round(c.h)}, ${m.id || m.name})`;
+    const grp = `Słup i stopa – podpora ${p.label}`;
+    const cm = w => w && w.cmb ? `${w.cmb.eq}, k_mod = ${fmtN(w.cmb.kmod)}` : '';
+    const W0 = o.worst;
+    if (W0.buck) C.push(mkCheck({ id: `colbk${k}`, grp, name: `Słup – ściskanie z wyboczeniem${c.e ? ' i mimośrodem' : ''} (6.23), (6.24) – ${nm}`, ref: '6.3.2', sup: k, col: k, ratio: W0.buck.ratio, Ed: W0.buck.ratio, Rd: 1, d: o, combo: cm(W0.buck), note: `N_Ed = ${fmtN(Math.round(W0.buck.Nc * 10) / 10)} kN, k_c,y = ${fmtN(Math.round(by.kc * 1000) / 1000)}, k_c,z = ${fmtN(Math.round(bz.kc * 1000) / 1000)}` }));
+    if (W0.end) C.push(mkCheck({ id: `colend${k}`, grp, name: `Słup – docisk czoła do blachy podstawy σ_{c,0,d} ≤ f_{c,0,d}`, ref: '6.1.4', sup: k, col: k, ratio: W0.end.ratio, Ed: W0.end.sce, Rd: W0.end.fc0d, unit: 'MPa', d: o, combo: cm(W0.end) }));
+    if (W0.conn) C.push(mkCheck({ id: `colcn${k}`, grp, name: `Stopa – łączniki ${bolt ? 'śruby' : 'sworznie'} ${c.n * c.m}×⌀${c.d}: wyrywanie i siła pozioma (F_t/R_t)² + (F_v/R_v)² ≤ 1`, ref: '8.2.3', sup: k, col: k, ratio: W0.conn.ratio, Ed: W0.conn.ratio, Rd: 1, d: o, combo: cm(W0.conn), note: `N_t = ${fmtN(Math.round(W0.conn.Nt * 10) / 10)} kN, H = ${fmtN(Math.round(W0.conn.H * 10) / 10)} kN` }));
+    if (W0.block) C.push(mkCheck({ id: `colbs${k}`, grp, name: 'Stopa – ścinanie blokowe drewna przy wyrywaniu (zał. A)', ref: 'A.1', sup: k, col: k, ratio: W0.block.ratio, Ed: W0.block.Nt, Rd: W0.block.Fbs, unit: 'kN', d: o, combo: cm(W0.block) }));
+    C.push(mkCheck({ id: `colsp${k}`, grp, name: `Stopa – rozstaw łączników (tab. ${bolt ? '8.5' : '8.6'}): a₁ ≥ ${Math.round(req.a1)}, a₂ ≥ ${Math.round(req.a2)}, a₃,t ≥ ${Math.round(req.a3)}, a₄ ≥ ${Math.round(req.a4)} mm${fit ? '' : '; łączniki nie mieszczą się w przekroju'}`, ref: '8.6', sup: k, col: k, ratio: spR, Ed: spR, Rd: 1, d: o }));
+    if (W0.pbear) C.push(mkCheck({ id: `colpb${k}`, grp, name: `Stopa – docisk łącznika do blachy t = ${c.ts} mm (EN 1993-1-8, tab. 3.4)`, ref: 'EN 1993-1-8', sup: k, col: k, ratio: W0.pbear.ratio, Ed: W0.pbear.F1, Rd: Fb1 / 1e3, unit: 'kN', d: o, combo: cm(W0.pbear) }));
+    if (W0.conc) C.push(mkCheck({ id: `colcc${k}`, grp, name: `Fundament – docisk betonu ${c.conc} pod blachą ${Math.round(c.pa)}×${Math.round(c.pb)} mm σ ≤ f_{jd}`, ref: 'EN 1993-1-8', sup: k, col: k, ratio: W0.conc.ratio, Ed: W0.conc.s, Rd: fjd, unit: 'MPa', d: o, combo: cm(W0.conc) }));
+    if (W0.anch) C.push(mkCheck({ id: `colan${k}`, grp, name: `Fundament – kotwy ${c.na} szt.: (N_{Ed}/N_{Rd})^{1,5} + (V_{Ed}/V_{Rd})^{1,5} ≤ 1`, ref: 'EN 1992-4', sup: k, col: k, ratio: W0.anch.ratio, Ed: W0.anch.ratio, Rd: 1, d: o, combo: cm(W0.anch), note: 'N_Rd, V_Rd kotwy – z ETA producenta' }));
+    if (c.gap < 20 || S.env.sc === 3) C.push(mkCheck({ id: `colgp${k}`, grp, name: `Trwałość – odstęp czoła słupa od betonu ${Math.round(c.gap)} mm${c.gap < 20 ? ' < 20 mm' : ''}: zalecana szczelina ≥ 20–30 mm, a na zewnątrz (klasa użytk. 3) słup ≥ 150 mm nad terenem, zabezpieczenie przed wodą`, ref: '', sup: k, col: k, ratio: NaN, status: 'warn' }));
+  });
+}
+
 /* ------------------------------------------------------- dobór automatyczny */
 const realChecks = R => (R && R.checks ? R.checks : []).filter(c => c.status !== 'info' && c.status !== 'warn' && isFinite(c.ratio));
 function passes(R, eta) { return R && !R.errors.length && realChecks(R).every(c => c.ratio <= eta + 1e-9); }
@@ -1370,7 +1523,7 @@ const API = {
   SCHEMES, SUP_DOF, SUP_NAME, DEFL_PRESETS, STL, KAPPA,
   num, clamp, optNum, defaultState, normalize, normItem, normPt, psiOf, durOf, durAuto, matOf, famOf, materials, khOf, secProps, strengthBase, torsionCoef,
   beamModel, segAt, itemRange, ptX, loadComp, ptComp, splitItem, statics, genCombos, combEnv, combReac, deflEnv, ltbOf, bucklOf, charDepth, calc,
-  designSection, designClass, designAll, TRADE, passes, govRatio, realChecks, candidates, bearingLen, kc90Of,
+  designSection, designClass, designAll, TRADE, FAST_STEEL, PLATE_STEEL, CONC_FCK, COL_DEF, normCol, colFastener, passes, govRatio, realChecks, candidates, bearingLen, kc90Of,
   makeBendSolver, bendRun, makeBarSolver, barRun,
 };
 root.EC5 = API;
