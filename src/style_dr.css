@@ -34,3 +34,16 @@ table.reqt td.no { color: var(--fail); font-weight: 700; } table.reqt td.yes { c
 :is(#report, #ownrep) .eq .r { color: #333; }
 .rtools .sp { flex: 1; }
 @media (max-width: 900px) { .minisecs .swcard { flex: 1 1 100%; } }
+/* okna: słup i stopa, przekrój, węzeł */
+#modal .dlg.colwin { max-width: min(1040px, 96vw); }
+.colwin .zcols { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.colwin .zprev { position: sticky; top: 0; }
+.colwin .zprev svg { max-width: 100%; height: auto; }
+.colwin .fields { padding: 0; }
+.colwin .row label { font-size: 12px; }
+@media (max-width: 900px) { .colwin .zcols { grid-template-columns: minmax(0, 1fr); } .colwin .zprev { position: static; } }
+.secedit.xclick { border-radius: 6px; }
+.secedit.xclick:hover { background: var(--acc2); }
+.schemesvg .ldoffg text { text-decoration: line-through; }
+.ldleg .ldl { pointer-events: auto; }
+.schsticky .schtools .btn.on { background: var(--acc2); border-color: var(--acc); color: var(--acc3); }

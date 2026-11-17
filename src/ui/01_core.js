@@ -75,8 +75,7 @@ const GROUPS = [
     { t: 'html', h: () => kmodTabHTML() },
   ] },
   { id: 'load', title: 'Obciążenia', items: [
-    { k: 'loads.sw', t: 'chk', l: 'Ciężar własny belki (γ·A) – obciążenie stałe' },
-    { t: 'list', kind: 'perm' }, { t: 'list', kind: 'imp' }, { t: 'list', kind: 'snow' }, { t: 'list', kind: 'wind' }, { t: 'list', kind: 'other' }, { t: 'list', kind: 'acc' },
+    { t: 'html', h: () => `<div class="hint">Obciążenia (stałe, użytkowe, śnieg, wiatr, inne, wyjątkowe, momenty skręcające, siły skupione) zadajesz <b>na schemacie</b> obok: przycisk <b>Obciążenia</b> nad schematem lub <b>prawy przycisk</b> na przęśle; kliknij obciążenie, aby je zmienić; pole wyboru w legendzie – uwzględnij / pomiń. Zestawienie – pod schematem.</div><div class="rowbtn" style="justify-content:flex-start"><button class="btn sm" data-openall="1">Obciążenia całej belki…</button>&nbsp;<span class="hint" style="margin:0">aktywnych: ${allItems().filter(q => !q[2].off).length}${allItems().some(q => q[2].off) ? `, pominiętych: ${allItems().filter(q => q[2].off).length}` : ''}</span></div>` },
     { t: 'sub', l: 'Kombinacje (PN-EN 1990)' },
     { k: 'loads.comb', t: 'sel', l: 'Kombinacja SGN', o: [['610ab', 'wzory 6.10a i 6.10b'], ['610', 'wzór 6.10']], wide: true },
     { k: 'loads.gG', t: 'num', l: 'γ_{G,sup}', list: [1.0, 1.15, 1.35], min: 0 },
@@ -326,7 +325,8 @@ function hintLoads() {
   return `Ciężar własny ${fmt(gsw, 3)} kN/m · kombinacji SGN: <b>${nU}</b>${R.cb.acc.length ? `, wyjątkowych: ${R.cb.acc.length}` : ''} · grupy trwania: ${fams.join(', ')}`;
 }
 // edycja pól obciążeń (lista w Danych i okno obciążenia)
-function bindItems(host) {
+function bindItems(host, redraw) {
+  const re = () => { if (redraw) setTimeout(redraw, 0); };
   $$('[data-add]', host).forEach(b => b.addEventListener('click', () => {
     const kind = b.dataset.add, A = listArr(kind);
     const n = A.filter(it => arrKey(kind) !== 'var' || it.kind === kind).length + 1;
@@ -341,17 +341,17 @@ function bindItems(host) {
       const f = inp.dataset.f;
       const ev = inp.tagName === 'SELECT' || inp.type === 'checkbox' ? 'change' : 'change';
       inp.addEventListener(ev, () => {
-        if (f === 'on') { it.off = !inp.checked; upd(true); return; }
+        if (f === 'on') { it.off = !inp.checked; upd(true); re(); return; }
         if (f === 'name') { it.name = inp.value; upd(false); return; }
-        if (f === 'span') { if (inp.value !== 'm') { it.span = +inp.value; it.spans = []; it.x1 = ''; it.x2 = ''; } upd(true); return; }
-        if (['cat', 'sub', 'alt', 'dir', 'proj', 'dur'].includes(f)) { it[f] = inp.value; if (f === 'cat') it.sub = ''; upd(true); return; }
+        if (f === 'span') { if (inp.value !== 'm') { it.span = +inp.value; it.spans = []; it.x1 = ''; it.x2 = ''; } upd(true); re(); return; }
+        if (['cat', 'sub', 'alt', 'dir', 'proj', 'dur'].includes(f)) { it[f] = inp.value; if (f === 'cat') it.sub = ''; upd(true); re(); return; }
         const raw = inp.value.trim();
         if (raw === '' && ['q2', 'x1', 'x2', 'bw'].includes(f)) { it[f] = ''; if (f === 'bw' && it.qAuto) { /* przelicz */ } upd(f === 'bw'); return; }
         const v = parseNum(raw);
         if (v === null) { inp.classList.add('bad'); return; }
         inp.classList.remove('bad');
         if (f === 'q' && it.kind === 'imp') it.qAuto = false;
-        it[f] = v; upd(f === 'q' || f === 'bw');
+        it[f] = v; upd(f === 'q' || f === 'bw'); if (f === 'bw' || (f === 'q' && it.kind === 'imp')) re();
       });
     });
     $$('[data-p]', el).forEach(inp => inp.addEventListener('change', () => {
@@ -362,11 +362,13 @@ function bindItems(host) {
       const v = parseNum(raw); if (v === null) { inp.classList.add('bad'); return; }
       inp.classList.remove('bad'); p[f] = v; upd(false);
     }));
-    $$('[data-pdel]', el).forEach(b => b.addEventListener('click', () => { it.pts.splice(+b.dataset.pdel, 1); upd(true); }));
-    const pa = $('[data-padd]', el); if (pa) pa.addEventListener('click', () => { it.pts.push({ P: 5, a: '', ref: 'L', lb: '' }); upd(true); });
-    const qa = $('[data-qauto]', el); if (qa) qa.addEventListener('click', () => { it.qAuto = true; upd(true); });
+    $$('[data-pdel]', el).forEach(b => b.addEventListener('click', () => { it.pts.splice(+b.dataset.pdel, 1); upd(true); re(); }));
+    const pa = $('[data-padd]', el); if (pa) pa.addEventListener('click', () => { it.pts.push({ P: 5, a: '', ref: 'L', lb: '' }); upd(true); re(); });
+    const qa = $('[data-qauto]', el); if (qa) qa.addEventListener('click', () => { it.qAuto = true; upd(true); re(); });
   });
   $$('[data-del]', host).forEach(b => b.addEventListener('click', () => {
-    const [arr, i] = b.dataset.del.split('.'); arrByKey(arr).splice(+i, 1); changed(true);
+    const [arr, i] = b.dataset.del.split('.'); arrByKey(arr).splice(+i, 1); changed(true); re();
   }));
 }
+
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-openall]')) loadPopup({ all: true }); });

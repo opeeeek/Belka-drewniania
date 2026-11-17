@@ -181,7 +181,7 @@ function renderAutoBar() {
   $('#adCls', el).onclick = () => runDesign('cls');
   $('#adAll', el).onclick = () => runDesign('all');
 }
-function runDesign(kind) {
+function runDesign(kind, after) {
   toast('Trwa dobór…', 8000);
   setTimeout(() => {
     const t0 = Date.now();
@@ -202,6 +202,7 @@ function runDesign(kind) {
     let msg = `Dobrano (${secs} s): <b>${after}</b> (było: ${before}); największe wytężenie η = <b>${fmt(r.eta * 100, 0)}%</b> ≤ ${S.design.eta}%.`;
     if (r.list && r.list.length > 1) msg += ` <br><span class="hint">Warianty: ${r.list.map(q => `${esc(q.cls)} ${q.b}×${q.h} (η = ${fmt(q.eta * 100, 0)}%)`).join(' · ')}</span>`;
     toast(msg.replace(/<[^>]+>/g, ''), 5200);
+    if (after) after();
   }, 30);
 }
 function showMsg(title, body) {
