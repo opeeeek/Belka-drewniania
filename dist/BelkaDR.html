@@ -1930,6 +1930,12 @@ function runChecks(R) {
   slsChecks(R);
   if (S.fire.on) fireChecks(R);
   infoChecks(R);
+  // kolejność: grupy sprawdzeń (w grupie – kolejność odcinków / podpór)
+  const GO = ['SGN – zginanie', 'SGN – ścinanie i skręcanie', 'SGN – docisk i podcięcia', 'SGN – stateczność', 'SGU – ugięcia', 'SGU – drgania', 'Pożar', 'Konstrukcja i wykonanie'];
+  const gr = c => { const i = GO.findIndex(g => c.grp.startsWith(g)); return i < 0 ? GO.length : i; };
+  C.forEach((c, i) => { c._o = i; });
+  C.sort((a, b) => gr(a) - gr(b) || a._o - b._o);
+  C.forEach(c => { delete c._o; });
   const real = C.filter(c => c.status !== 'info' && c.status !== 'warn' && isFinite(c.ratio));
   R.maxEta = real.length ? Math.max(...real.map(c => c.ratio)) : 0;
   R.fails = C.filter(c => c.status === 'fail').length;
@@ -3976,8 +3982,10 @@ function init() {
   recalc();
   renderInputs();
   updateTitle();
+  // plik projektu przekazany przez program (dwuklik na pliku .belkadr)
+  if (window.__OPENFILE && window.__OPENFILE.content) { try { loadProject(window.__OPENFILE.content, window.__OPENFILE.path); } catch (e) { console.error(e); } }
 }
-U.setState = s => { S = E.normalize(s); prevStat = null; renderInputs(); recalc(); };
+U.setState = s => { S = E.normalize(s); if (BEAMS) BEAMS[curB] = S; prevStat = null; $('#projName').value = S.meta.name || ''; rendered = {}; renderInputs(); recalc(); updateTitle(); };
 U.getState = () => S;
 U.selectTab = t => { const b = $(`.tabs button[data-tab="${t}"]`); if (b) b.click(); };
 U.ckVal = ckVal; U.fmtPsi = fmtPsi; U.sectionSVG = sectionSVG; U.schemeSVG = schemeSVG; U.lineChart = lineChart; U.elevationSVG = elevationSVG; U.reactionsHTML = reactionsHTML; U.combosHTML = combosHTML; U.envSeries = envSeries; U.extremeMarks = extremeMarks; U.fdTableHTML = fdTableHTML; U.scheduleHTML = scheduleHTML; U.supTableHTML = supTableHTML; U.stressSVG = stressSVG; U.idOf = idOf; U.KIND_NAME = KIND_NAME; U.allItems = allItems;

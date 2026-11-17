@@ -282,8 +282,10 @@ function init() {
   recalc();
   renderInputs();
   updateTitle();
+  // plik projektu przekazany przez program (dwuklik na pliku .belkadr)
+  if (window.__OPENFILE && window.__OPENFILE.content) { try { loadProject(window.__OPENFILE.content, window.__OPENFILE.path); } catch (e) { console.error(e); } }
 }
-U.setState = s => { S = E.normalize(s); prevStat = null; renderInputs(); recalc(); };
+U.setState = s => { S = E.normalize(s); if (BEAMS) BEAMS[curB] = S; prevStat = null; $('#projName').value = S.meta.name || ''; rendered = {}; renderInputs(); recalc(); updateTitle(); };
 U.getState = () => S;
 U.selectTab = t => { const b = $(`.tabs button[data-tab="${t}"]`); if (b) b.click(); };
 U.ckVal = ckVal; U.fmtPsi = fmtPsi; U.sectionSVG = sectionSVG; U.schemeSVG = schemeSVG; U.lineChart = lineChart; U.elevationSVG = elevationSVG; U.reactionsHTML = reactionsHTML; U.combosHTML = combosHTML; U.envSeries = envSeries; U.extremeMarks = extremeMarks; U.fdTableHTML = fdTableHTML; U.scheduleHTML = scheduleHTML; U.supTableHTML = supTableHTML; U.stressSVG = stressSVG; U.idOf = idOf; U.KIND_NAME = KIND_NAME; U.allItems = allItems;

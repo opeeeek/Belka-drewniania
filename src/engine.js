@@ -1079,6 +1079,12 @@ function runChecks(R) {
   slsChecks(R);
   if (S.fire.on) fireChecks(R);
   infoChecks(R);
+  // kolejność: grupy sprawdzeń (w grupie – kolejność odcinków / podpór)
+  const GO = ['SGN – zginanie', 'SGN – ścinanie i skręcanie', 'SGN – docisk i podcięcia', 'SGN – stateczność', 'SGU – ugięcia', 'SGU – drgania', 'Pożar', 'Konstrukcja i wykonanie'];
+  const gr = c => { const i = GO.findIndex(g => c.grp.startsWith(g)); return i < 0 ? GO.length : i; };
+  C.forEach((c, i) => { c._o = i; });
+  C.sort((a, b) => gr(a) - gr(b) || a._o - b._o);
+  C.forEach(c => { delete c._o; });
   const real = C.filter(c => c.status !== 'info' && c.status !== 'warn' && isFinite(c.ratio));
   R.maxEta = real.length ? Math.max(...real.map(c => c.ratio)) : 0;
   R.fails = C.filter(c => c.status === 'fail').length;
