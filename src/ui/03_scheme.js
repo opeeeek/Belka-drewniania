@@ -122,7 +122,7 @@ function schemeSVG(W, opt) {
 }
 // wykres pod belką (Dane): M, V, ugięcie, N, R (reakcje), η (wytężenie)
 function diagBand(kind, X, yTop, HB, W, ml, mr) {
-  const md = R.md, st = R.st, y0 = yTop + HB / 2 - 6;
+  const md = R.md, st = R.st, y0 = yTop + HB / 2 + 6;
   let s = `<g class="diag">`;
   md.sups.forEach(p => { s += `<line x1="${X(p.x)}" y1="${yTop}" x2="${X(p.x)}" y2="${yTop + HB - 8}" stroke="#9aa3b0" stroke-width="0.6" stroke-dasharray="3 3"/>`; });
   if (kind === 'R') {
@@ -142,7 +142,7 @@ function diagBand(kind, X, yTop, HB, W, ml, mr) {
   else { mx = Array.from(st.stX, (x, i) => Math.max(R.eta.bend[i], R.eta.stab[i])); mn = Array.from(st.stX, (x, i) => -R.eta.shear[i]); col = '#a35d00'; fill = '#e6a35a'; title = 'Wytężenie η(x) [%]: zginanie i stateczność (+), ścinanie (−)'; dp = 0; k = 100; }
   let amax = 1e-9; for (let i = 0; i < mx.length; i++) amax = Math.max(amax, Math.abs(mx[i]) * k, Math.abs(mn[i]) * k);
   if (kind === 'eta') amax = Math.max(amax, 100);
-  const sc = (HB / 2 - 22) / amax, Y = v => y0 + (inv ? 1 : -1) * v * k * sc;
+  const sc = (HB / 2 - 30) / amax, Y = v => y0 + (inv ? 1 : -1) * v * k * sc;
   s += tx(ml - 30, yTop + 10, esc(title), { a: 'start', fs: 10, c: '#5b6576' });
   const poly = arr => { let p = `${X(st.stX[0]).toFixed(1)},${y0} `; for (let i = 0; i < arr.length; i++) p += `${X(st.stX[i]).toFixed(1)},${Y(arr[i]).toFixed(1)} `; return p + `${X(st.stX[arr.length - 1]).toFixed(1)},${y0}`; };
   if (kind === 'eta') { s += `<polygon points="${poly(mx)}" fill="#e6a35a" fill-opacity="0.45" stroke="#a35d00" stroke-width="1.1"/><polygon points="${poly(mn)}" fill="#c9d4e6" fill-opacity="0.6" stroke="#1d5bb8" stroke-width="1.1"/>`;

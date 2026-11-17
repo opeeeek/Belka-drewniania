@@ -121,13 +121,13 @@ func fileDialog(hwnd uintptr, save bool, kind, defName string) string {
 	}
 	flt, ext := filterFor(kind)
 	ofn := openFileName{
-		hwndOwner:   hwnd,
-		lpstrFilter: flt,
+		hwndOwner:    hwnd,
+		lpstrFilter:  flt,
 		nFilterIndex: 1,
-		lpstrFile:   &buf[0],
-		nMaxFile:    uint32(len(buf)),
-		lpstrDefExt: ext,
-		flags:       ofnExplorer | ofnNoChangeDir | ofnPathMustExist,
+		lpstrFile:    &buf[0],
+		nMaxFile:     uint32(len(buf)),
+		lpstrDefExt:  ext,
+		flags:        ofnExplorer | ofnNoChangeDir | ofnPathMustExist,
 	}
 	ofn.lStructSize = uint32(unsafe.Sizeof(ofn))
 	var r uintptr
@@ -224,6 +224,7 @@ func main() {
 			Width:  uint(ww),
 			Height: uint(wh),
 			Center: true,
+			IconId: 1, // ikona z zasobów (rsrc_windows_amd64.syso – tools/make_winres.py)
 		},
 	})
 	if w == nil {

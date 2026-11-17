@@ -3305,7 +3305,7 @@ function schemeSVG(W, opt) {
 }
 // wykres pod belką (Dane): M, V, ugięcie, N, R (reakcje), η (wytężenie)
 function diagBand(kind, X, yTop, HB, W, ml, mr) {
-  const md = R.md, st = R.st, y0 = yTop + HB / 2 - 6;
+  const md = R.md, st = R.st, y0 = yTop + HB / 2 + 6;
   let s = `<g class="diag">`;
   md.sups.forEach(p => { s += `<line x1="${X(p.x)}" y1="${yTop}" x2="${X(p.x)}" y2="${yTop + HB - 8}" stroke="#9aa3b0" stroke-width="0.6" stroke-dasharray="3 3"/>`; });
   if (kind === 'R') {
@@ -3325,7 +3325,7 @@ function diagBand(kind, X, yTop, HB, W, ml, mr) {
   else { mx = Array.from(st.stX, (x, i) => Math.max(R.eta.bend[i], R.eta.stab[i])); mn = Array.from(st.stX, (x, i) => -R.eta.shear[i]); col = '#a35d00'; fill = '#e6a35a'; title = 'Wytężenie η(x) [%]: zginanie i stateczność (+), ścinanie (−)'; dp = 0; k = 100; }
   let amax = 1e-9; for (let i = 0; i < mx.length; i++) amax = Math.max(amax, Math.abs(mx[i]) * k, Math.abs(mn[i]) * k);
   if (kind === 'eta') amax = Math.max(amax, 100);
-  const sc = (HB / 2 - 22) / amax, Y = v => y0 + (inv ? 1 : -1) * v * k * sc;
+  const sc = (HB / 2 - 30) / amax, Y = v => y0 + (inv ? 1 : -1) * v * k * sc;
   s += tx(ml - 30, yTop + 10, esc(title), { a: 'start', fs: 10, c: '#5b6576' });
   const poly = arr => { let p = `${X(st.stX[0]).toFixed(1)},${y0} `; for (let i = 0; i < arr.length; i++) p += `${X(st.stX[i]).toFixed(1)},${Y(arr[i]).toFixed(1)} `; return p + `${X(st.stX[arr.length - 1]).toFixed(1)},${y0}`; };
   if (kind === 'eta') { s += `<polygon points="${poly(mx)}" fill="#e6a35a" fill-opacity="0.45" stroke="#a35d00" stroke-width="1.1"/><polygon points="${poly(mn)}" fill="#c9d4e6" fill-opacity="0.6" stroke="#1d5bb8" stroke-width="1.1"/>`;
@@ -4628,7 +4628,7 @@ function doPrint() {
 }
 function about() {
   const m = $('#modal');
-  m.innerHTML = `<div class="dlg"><h3>BelkaDR 1.0 – belki drewniane wg Eurokodu 5</h3>
+  m.innerHTML = `<div class="dlg"><h3>BelkaDR 1.1 – belki drewniane wg Eurokodu 5</h3>
   <p>Wymiarowanie i sprawdzanie belek z drewna litego, klejonego warstwowo i LVL wg PN-EN 1995-1-1 (parametry krajowe wg Załącznika Krajowego PL), kombinacje wg PN-EN 1990, obciążenia użytkowe wg PN-EN 1991-1-1, odporność ogniowa wg PN-EN 1995-1-2 (metoda zredukowanego przekroju), klasy drewna wg PN-EN 338:2016 i PN-EN 14080:2013.</p>
   <ul>
   <li><b>Statyka</b> – belki jednoprzęsłowe, wsporniki, belki ciągłe do 10 przęseł ze wspornikami, liczone w całości MES (elementy Timoshenki – z odkształceniami postaciowymi); podpory z blokadą przesuwu x, y, z i obrotu, podatne; węzły i przeguby (belki Gerbera); różne przekroje w odcinkach; belka nachylona (krokiew) i obrócona (płatew) – zginanie dwukierunkowe i siła osiowa; skręcanie; wykresy M, V, N, T, ugięć i wytężenia z odczytem pod kursorem; reakcje.</li>
@@ -4636,8 +4636,10 @@ function about() {
   <li><b>SGN</b> – zginanie jedno- i dwukierunkowe (6.1.6), z rozciąganiem i ściskaniem (6.2.3, 6.2.4), ścinanie z k<sub>cr</sub> i redukcją przy podporach (6.1.7), skręcanie (6.1.8), docisk na podporach i pod siłami z k<sub>c,90</sub> (6.1.5), belki podcięte (6.5.2), zwichrzenie (6.3.3) z długością efektywną wg tab. 6.1 i stężeniami, wyboczenie (6.3.2), k<sub>h</sub>, k<sub>sys</sub>.</li>
   <li><b>SGU</b> – ugięcia w<sub>inst</sub>, w<sub>fin</sub>, w<sub>net,fin</sub> z pełzaniem k<sub>def</sub> (2.2.3, 7.2), podniesienie wykonawcze, drgania stropów (7.3.3).</li>
   <li><b>Pożar</b> – metoda zredukowanego przekroju, zabezpieczenie płytami (t<sub>ch</sub>, t<sub>f</sub>), nośność, ścinanie i zwichrzenie w pożarze.</li>
-  <li><b>Dobór</b> – przekroju z wymiarów handlowych, klasy drewna lub obu, przy zadanym wytężeniu.</li></ul>
-  <p>Dane wprowadzasz w zakładce <b>Dane</b>; obok formularza jest schemat belki – kliknij przęsło, podporę lub obciążenie. W <b>Podsumowaniu</b> kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń. Sprawdzenia można odhaczać – raport zawiera odhaczone.</p>
+  <li><b>Słup i stopa</b> – słup drewniany pod dowolną podporą obciążony reakcjami belki z każdej kombinacji: ściskanie z wyboczeniem i mimośrodem (6.3.2), docisk czoła (6.1.4), stopa stalowa (blacha wpuszczana lub blachy zewnętrzne) ze sworzniami lub śrubami – nośność wg Johansena (8.2.3), n<sub>ef</sub> (8.34), rozstawy (tab. 8.5, 8.6), ścinanie blokowe (zał. A), docisk do blachy (EN 1993-1-8), docisk betonu i kotwy (EN 1992-4).</li>
+  <li><b>Dobór</b> – przekroju z wymiarów handlowych, klasy drewna lub obu, przy zadanym wytężeniu.</li>
+  <li><b>Widoki</b> – schemat z zaznaczaniem przęseł (LPM) i menu (PPM), wykres pod belką, wykresy ze znacznikami, widok podłużny 2D z przekrojem pod kursorem i widok przestrzenny 3D, eksport DXF.</li></ul>
+  <p>Dane wprowadzasz w zakładce <b>Dane</b>; obok formularza jest schemat belki: lewy przycisk zaznacza przęsła, prawy otwiera menu (obciążenia, przekrój, węzeł, podpory); przyciski <b>Obciążenia / Przekrój / Węzeł / Wymiary</b> nad schematem; pola wyboru w legendzie pomijają obciążenia; kliknij podporę, aby zadać oparcie, podcięcie albo słup ze stopą. W <b>Podsumowaniu</b> kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń. Sprawdzenia można odhaczać – raport zawiera odhaczone.</p>
   <p>Skróty: F2 – raport, Ctrl+S – zapisz, Ctrl+O – otwórz, Ctrl+N – nowy, Ctrl+P – drukuj raport.</p>
   <p style="font-size:12px;color:var(--ink3)">Program jest narzędziem pomocniczym. Wyniki wymagają weryfikacji przez osobę z odpowiednimi uprawnieniami budowlanymi. Statyka: analiza liniowo-sprężysta I rzędu (MES). Parametry LVL – przykładowe, należy je sprawdzić z deklaracją właściwości użytkowych wyrobu.</p>
   <div class="dbtn"><button class="btn pri" id="abClose">Zamknij</button></div></div>`;
@@ -4900,7 +4902,7 @@ BDR.detail = function (c) {
 /* -------------------------------------------- sekcje raportu */
 function head(R, S, title) {
   const d = new Date();
-  return `<h1>${esc(title)}: ${esc(S.meta.name || 'belka')}</h1><p class="note">BelkaDR 1.0 · ${d.toLocaleDateString('pl-PL')}${S.meta.author ? ' · opracował: ' + esc(S.meta.author) : ''} · PN-EN 1995-1-1 (+ ZK PL), PN-EN 1990, PN-EN 1991-1-1${S.fire.on ? ', PN-EN 1995-1-2' : ''}</p>${S.meta.note ? `<p>${esc(S.meta.note)}</p>` : ''}`;
+  return `<h1>${esc(title)}: ${esc(S.meta.name || 'belka')}</h1><p class="note">BelkaDR 1.1 · ${d.toLocaleDateString('pl-PL')}${S.meta.author ? ' · opracował: ' + esc(S.meta.author) : ''} · PN-EN 1995-1-1 (+ ZK PL), PN-EN 1990, PN-EN 1991-1-1${S.fire.on ? ', PN-EN 1995-1-2' : ''}</p>${S.meta.note ? `<p>${esc(S.meta.note)}</p>` : ''}`;
 }
 function secData(R, S) {
   const u = U(), md = R.md, mt = R.mt;
@@ -5113,7 +5115,7 @@ BDR.odt = async function (html, title) {
     `<style:style style:name="Tab" style:family="table"><style:table-properties style:width="17cm" table:align="left" fo:margin-top="0.15cm" fo:margin-bottom="0.15cm"/></style:style><style:style style:name="Cell" style:family="table-cell"><style:table-cell-properties fo:padding="0.05cm" fo:border="0.5pt solid #9aa3b0"/></style:style>`;
   const content = `<?xml version="1.0" encoding="UTF-8"?><office:document-content ${NS}><office:automatic-styles>${auto}</office:automatic-styles><office:body><office:text>${body}</office:text></office:body></office:document-content>`;
   const manifest = `<?xml version="1.0" encoding="UTF-8"?><manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2"><manifest:file-entry manifest:full-path="/" manifest:version="1.2" manifest:media-type="application/vnd.oasis.opendocument.text"/><manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/><manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/><manifest:file-entry manifest:full-path="meta.xml" manifest:media-type="text/xml"/>${pics.map(p => `<manifest:file-entry manifest:full-path="${p.name}" manifest:media-type="image/png"/>`).join('')}</manifest:manifest>`;
-  const meta = `<?xml version="1.0" encoding="UTF-8"?><office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" office:version="1.2"><office:meta><meta:generator>BelkaDR 1.0</meta:generator><dc:title>${esc(title || '')}</dc:title><meta:creation-date>${new Date().toISOString().slice(0, 19)}</meta:creation-date></office:meta></office:document-meta>`;
+  const meta = `<?xml version="1.0" encoding="UTF-8"?><office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" office:version="1.2"><office:meta><meta:generator>BelkaDR 1.1</meta:generator><dc:title>${esc(title || '')}</dc:title><meta:creation-date>${new Date().toISOString().slice(0, 19)}</meta:creation-date></office:meta></office:document-meta>`;
   return zip([{ name: 'mimetype', data: 'application/vnd.oasis.opendocument.text' }, { name: 'META-INF/manifest.xml', data: manifest }, { name: 'content.xml', data: content }, { name: 'styles.xml', data: styles }, { name: 'meta.xml', data: meta }, ...pics]);
 };
 })();

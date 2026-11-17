@@ -192,7 +192,7 @@ BDR.detail = function (c) {
 /* -------------------------------------------- sekcje raportu */
 function head(R, S, title) {
   const d = new Date();
-  return `<h1>${esc(title)}: ${esc(S.meta.name || 'belka')}</h1><p class="note">BelkaDR 1.0 · ${d.toLocaleDateString('pl-PL')}${S.meta.author ? ' · opracował: ' + esc(S.meta.author) : ''} · PN-EN 1995-1-1 (+ ZK PL), PN-EN 1990, PN-EN 1991-1-1${S.fire.on ? ', PN-EN 1995-1-2' : ''}</p>${S.meta.note ? `<p>${esc(S.meta.note)}</p>` : ''}`;
+  return `<h1>${esc(title)}: ${esc(S.meta.name || 'belka')}</h1><p class="note">BelkaDR 1.1 · ${d.toLocaleDateString('pl-PL')}${S.meta.author ? ' · opracował: ' + esc(S.meta.author) : ''} · PN-EN 1995-1-1 (+ ZK PL), PN-EN 1990, PN-EN 1991-1-1${S.fire.on ? ', PN-EN 1995-1-2' : ''}</p>${S.meta.note ? `<p>${esc(S.meta.note)}</p>` : ''}`;
 }
 function secData(R, S) {
   const u = U(), md = R.md, mt = R.mt;

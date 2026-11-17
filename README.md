@@ -20,17 +20,18 @@ PN-EN 1995-1-1 (+ ZK PL), PN-EN 1990, PN-EN 1991-1-1, PN-EN 1995-1-2, PN-EN 338:
 | SGN | zginanie jedno- i dwukierunkowe (6.1.6, k_m), z rozciąganiem (6.2.3) i ściskaniem (6.2.4), ścinanie z k_cr i redukcją przy podporach (6.1.7), ścinanie dwukierunkowe, skręcanie (6.1.8, k_shape), docisk na podporach i pod siłami z k_c,90 i l_ef (6.1.5), belki podcięte (6.5.2, k_v), zwichrzenie (6.3.3, l_ef wg tab. 6.1 + stężenia + położenie obciążenia), wyboczenie (6.3.2), k_h, k_sys |
 | SGU | w_inst, w_fin, w_net,fin wg 2.2.3 i 7.2 (k_def, drewno mokre +1), podniesienie wykonawcze, granice z tab. 7.2 lub praktyki krajowej, drgania stropów (7.3.3: f₁, w/F, v) |
 | Pożar | metoda zredukowanego przekroju (4.2.2), β_n, k_0, okładzina g-k (t_ch, t_f, k_2, k_3), nośność, ścinanie i zwichrzenie w pożarze |
-| Dobór | „Dobierz przekrój” (najmniejszy przekrój z katalogu), „Dobierz klasę”, „Dobierz wszystko” (klasy handlowe, najmniejszy koszt), przy zadanym wytężeniu η i opcjonalnie stałej szerokości b |
+| Słup i stopa | słup drewniany pod dowolną podporą, obciążony reakcjami belki z każdej kombinacji (z k_mod tej kombinacji) i ciężarem własnym: ściskanie z wyboczeniem i mimośrodem (6.3.2), docisk czoła do blachy (6.1.4); stopa stalowa – blacha wpuszczana lub dwie blachy zewnętrzne, sworznie lub śruby: nośność wg Johansena (8.11–8.13, f_h 8.32/8.33, M_y,Rk 8.30, efekt liny), n_ef (8.34), rozstawy (tab. 8.5/8.6), ścinanie blokowe (zał. A), docisk łącznika do blachy (EN 1993-1-8 tab. 3.4), docisk betonu pod blachą podstawy (EN 1993-1-8 6.2.5), kotwy – interakcja N/V (EN 1992-4, N_Rd i V_Rd z ETA); trwałość (szczelina, klasa 3) |
+| Dobór | „Dobierz przekrój” (najmniejszy przekrój z katalogu), „Dobierz klasę”, „Dobierz wszystko” (klasy handlowe, najmniejszy koszt), przy zadanym wytężeniu η i opcjonalnie stałej szerokości b – w pasku nad danymi i w oknie „Przekrój” |
 
 ## Funkcje odpowiadające BelkaŻB
 
 | BelkaŻB | BelkaDR |
 |---|---|
-| Dane: formularz w kolumnach + schemat belki obok, chipy stanu (SGN/SGU…), pasek doboru z wytężeniem η | to samo; schemat klikalny: przęsło (obciążenia, przekrój, węzły, przeguby), podpora (rodzaj, oparcie, podatność, podcięcie), obciążenie (edycja); wykres pod belką: M / V / ugięcie / N / wytężenie η |
-| Przekrój i zbrojenie | **Przekrój i nośność**: rysunek przekroju (słoje, lamele, przekrój resztkowy po pożarze), charakterystyki, tablica f_d dla klas trwania, przekroje decydujące z rozkładem σ i τ, tabela stateczności |
-| Wykresy M, V, T, N, ugięcia | **Wykresy M, V, N, ugięcia**: schemat obciążeń, reakcje (obwiednie i od każdego obciążenia), M_y, V_y, M_z, V_z, N, T, ugięcia z granicami, wytężenie η(x), tabela kombinacji; odczyt pod kursorem; wykresy od poszczególnych obciążeń |
-| Zbrojenie belki (widok, wyciągi, DXF) | **Belka i podpory**: widok belki (oparcia, podcięcia, stężenia, przeguby, wymiary), tabela docisku i podcięć, zestawienie drewna (m³, kg), eksport DXF |
-| Podsumowanie | karty, lista niespełnionych warunków z przejściem do miejsca zmiany, tabela sprawdzeń z punktem normy, warunkiem, paskiem wykorzystania, statusem, kombinacją; odhaczanie; objaśnienie z tokiem obliczeń |
+| Dane: formularz w kolumnach + schemat belki obok, chipy stanu (SGN/SGU…), pasek doboru z wytężeniem η | to samo; nad schematem przyciski **Obciążenia / Przekrój / Węzeł / Wymiary**; **LPM** zaznacza przęsła, **PPM** – menu (obciążenia zaznaczonych przęseł lub całej belki, przekrój, węzeł, podpory); obciążenia zadawane w oknie obciążeń (cała belka, odcinek, kilka przęseł – jedno obciążenie); **legenda z polami wyboru** – pomijanie obciążeń; kliknięcie obciążenia, węzła, podpory – edycja; przełącznik wykresu pod belką: M / V / ugięcie / N / R / η / bez wykresu; Ctrl + kółko – powiększenie |
+| Przekrój i zbrojenie | **Przekrój i nośność**: rysunek przekroju (słoje, lamele, przekrój resztkowy po pożarze), charakterystyki, tablica f_d dla klas trwania, przekroje decydujące z rozkładem σ i τ, tabela stateczności; **kliknięcie przekroju** (tu, w oknie „Przekrój”, w panelu obok widoku podłużnego) – zmiana wymiarów, liczby elementów i materiału |
+| Wykresy M, V, T, N, ugięcia | **Wykresy M, V, N, ugięcia**: przełącznik (jeden wykres naraz albo wszystkie): M, V, N, M_z/V_z, T, ugięcia z granicami, wytężenie η(x), reakcje, kombinacje; odczyt pod kursorem; **LPM – znacznik z wartościami na wszystkich wykresach, PPM – usunięcie znaczników**; wykresy od poszczególnych obciążeń |
+| Zbrojenie belki (widok 2D/3D, przekrój obok, DXF) | **Belka i podpory**: przełącznik **2D / 3D** (widok przestrzenny: obrót, przesuw, powiększenie), widok podłużny (oparcia, podcięcia, stężenia, przeguby, słupy ze stopami), **przekrój pod kursorem po prawej** z wartościami i przyciskami edycji, kliknięcie – okno przekroju w punkcie x; tabele słupów, docisku i podcięć, zestawienie drewna, eksport DXF (z słupami i stopami) |
+| Podsumowanie | karty, lista niespełnionych warunków z przejściem do miejsca zmiany („pokaż →”), tabela sprawdzeń z punktem normy, warunkiem, paskiem wykorzystania, statusem, kombinacją; **automatyczne odhaczanie** – spełnione zaznaczone, niespełnione odznaczone po każdej zmianie (ręczna zmiana obowiązuje do zmiany stanu warunku); objaśnienie z tokiem obliczeń |
 | Raport (pełny / statyka / własny), HTML, .odt, druk/PDF | to samo |
 | Objaśnienia punktów normy | streszczenia PN-EN 1995-1-1, 1995-1-2, 1990, 1991-1-1; numery punktów klikalne w całej aplikacji |
 | Wiele belek w projekcie, autozapis, Nowy/Otwórz/Zapisz (Ctrl+N/O/S), F2, Ctrl+P, tryb ciemny, telefon | to samo (pliki `.belkadr` – JSON) |
@@ -47,7 +48,8 @@ PN-EN 1995-1-1 (+ ZK PL), PN-EN 1990, PN-EN 1991-1-1, PN-EN 1995-1-2, PN-EN 338:
 * Drgania: (EI)_b domyślnie 3,1 kNm²/m (OSB 22 mm), a = 1,5 mm/kN, b = 100, ζ = 1%, k_dist = 1,0 (bezpiecznie).
 * Pożar: k_mod,fi = γ_M,fi = 1,0, k_fi wg tab. 2.1, ψ₂,₁ (zalecane) lub ψ₁,₁; bez k_h.
 * LVL – wartości przykładowe; przed użyciem porównaj z deklaracją właściwości użytkowych wyrobu.
-* Poza zakresem: belki dwuspadowe, zakrzywione i o zmiennej wysokości (6.4), otwory w belkach, połączenia, CLT, przekroje inne niż prostokątne, analiza II rzędu.
+* Słup: przegubowy, stężony (siły poziome z góry słupa przejmują stężenia, chyba że zaznaczono przeniesienie reakcji poziomych na stopę); nośności kotew N_Rd, V_Rd – z ETA kotwy (wartości domyślne są przykładowe); grubość blachy podstawy i spoiny – poza zakresem.
+* Poza zakresem: belki dwuspadowe, zakrzywione i o zmiennej wysokości (6.4), otwory w belkach, połączenia belki (poza stopą słupa), CLT, przekroje inne niż prostokątne, analiza II rzędu.
 
 ## Budowanie
 
@@ -60,8 +62,14 @@ node test/engine.test.js
 ```
 
 ```bash
+python3 tools/make_winres.py
+```
+
+```bash
 cd host && GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-H windowsgui -s -w" -o ../BelkaDR.exe .
 ```
+
+`tools/make_winres.py` (Python + Pillow) tworzy z `host/winres/icon256.png` ikonę `host/winres/BelkaDR.ico` i zasoby `host/rsrc_windows_amd64.syso` (ikona 16–256 px, manifest: DPI per-monitor, Common Controls 6) – Go dołącza je do exe automatycznie.
 
 Struktura: `src/engine.js` – silnik obliczeń, `src/ui/*.js` – interfejs, `src/report.js` – raport, `src/norm.js` – objaśnienia normy, `src/odt.js`, `src/dxf.js` – eksporty, `src/style*.css` – wygląd, `host/main.go` – okno Windows (WebView2: natywne okna Zapisz/Otwórz, autozapis w `%LOCALAPPDATA%\BelkaDR`, otwieranie pliku `.belkadr` podanego w wierszu poleceń; bez WebView2 – aplikacja w przeglądarce).
 

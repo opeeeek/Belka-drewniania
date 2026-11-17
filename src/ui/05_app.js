@@ -214,7 +214,7 @@ function doPrint() {
 }
 function about() {
   const m = $('#modal');
-  m.innerHTML = `<div class="dlg"><h3>BelkaDR 1.0 – belki drewniane wg Eurokodu 5</h3>
+  m.innerHTML = `<div class="dlg"><h3>BelkaDR 1.1 – belki drewniane wg Eurokodu 5</h3>
   <p>Wymiarowanie i sprawdzanie belek z drewna litego, klejonego warstwowo i LVL wg PN-EN 1995-1-1 (parametry krajowe wg Załącznika Krajowego PL), kombinacje wg PN-EN 1990, obciążenia użytkowe wg PN-EN 1991-1-1, odporność ogniowa wg PN-EN 1995-1-2 (metoda zredukowanego przekroju), klasy drewna wg PN-EN 338:2016 i PN-EN 14080:2013.</p>
   <ul>
   <li><b>Statyka</b> – belki jednoprzęsłowe, wsporniki, belki ciągłe do 10 przęseł ze wspornikami, liczone w całości MES (elementy Timoshenki – z odkształceniami postaciowymi); podpory z blokadą przesuwu x, y, z i obrotu, podatne; węzły i przeguby (belki Gerbera); różne przekroje w odcinkach; belka nachylona (krokiew) i obrócona (płatew) – zginanie dwukierunkowe i siła osiowa; skręcanie; wykresy M, V, N, T, ugięć i wytężenia z odczytem pod kursorem; reakcje.</li>
@@ -222,8 +222,10 @@ function about() {
   <li><b>SGN</b> – zginanie jedno- i dwukierunkowe (6.1.6), z rozciąganiem i ściskaniem (6.2.3, 6.2.4), ścinanie z k<sub>cr</sub> i redukcją przy podporach (6.1.7), skręcanie (6.1.8), docisk na podporach i pod siłami z k<sub>c,90</sub> (6.1.5), belki podcięte (6.5.2), zwichrzenie (6.3.3) z długością efektywną wg tab. 6.1 i stężeniami, wyboczenie (6.3.2), k<sub>h</sub>, k<sub>sys</sub>.</li>
   <li><b>SGU</b> – ugięcia w<sub>inst</sub>, w<sub>fin</sub>, w<sub>net,fin</sub> z pełzaniem k<sub>def</sub> (2.2.3, 7.2), podniesienie wykonawcze, drgania stropów (7.3.3).</li>
   <li><b>Pożar</b> – metoda zredukowanego przekroju, zabezpieczenie płytami (t<sub>ch</sub>, t<sub>f</sub>), nośność, ścinanie i zwichrzenie w pożarze.</li>
-  <li><b>Dobór</b> – przekroju z wymiarów handlowych, klasy drewna lub obu, przy zadanym wytężeniu.</li></ul>
-  <p>Dane wprowadzasz w zakładce <b>Dane</b>; obok formularza jest schemat belki – kliknij przęsło, podporę lub obciążenie. W <b>Podsumowaniu</b> kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń. Sprawdzenia można odhaczać – raport zawiera odhaczone.</p>
+  <li><b>Słup i stopa</b> – słup drewniany pod dowolną podporą obciążony reakcjami belki z każdej kombinacji: ściskanie z wyboczeniem i mimośrodem (6.3.2), docisk czoła (6.1.4), stopa stalowa (blacha wpuszczana lub blachy zewnętrzne) ze sworzniami lub śrubami – nośność wg Johansena (8.2.3), n<sub>ef</sub> (8.34), rozstawy (tab. 8.5, 8.6), ścinanie blokowe (zał. A), docisk do blachy (EN 1993-1-8), docisk betonu i kotwy (EN 1992-4).</li>
+  <li><b>Dobór</b> – przekroju z wymiarów handlowych, klasy drewna lub obu, przy zadanym wytężeniu.</li>
+  <li><b>Widoki</b> – schemat z zaznaczaniem przęseł (LPM) i menu (PPM), wykres pod belką, wykresy ze znacznikami, widok podłużny 2D z przekrojem pod kursorem i widok przestrzenny 3D, eksport DXF.</li></ul>
+  <p>Dane wprowadzasz w zakładce <b>Dane</b>; obok formularza jest schemat belki: lewy przycisk zaznacza przęsła, prawy otwiera menu (obciążenia, przekrój, węzeł, podpory); przyciski <b>Obciążenia / Przekrój / Węzeł / Wymiary</b> nad schematem; pola wyboru w legendzie pomijają obciążenia; kliknij podporę, aby zadać oparcie, podcięcie albo słup ze stopą. W <b>Podsumowaniu</b> kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń. Sprawdzenia można odhaczać – raport zawiera odhaczone.</p>
   <p>Skróty: F2 – raport, Ctrl+S – zapisz, Ctrl+O – otwórz, Ctrl+N – nowy, Ctrl+P – drukuj raport.</p>
   <p style="font-size:12px;color:var(--ink3)">Program jest narzędziem pomocniczym. Wyniki wymagają weryfikacji przez osobę z odpowiednimi uprawnieniami budowlanymi. Statyka: analiza liniowo-sprężysta I rzędu (MES). Parametry LVL – przykładowe, należy je sprawdzić z deklaracją właściwości użytkowych wyrobu.</p>
   <div class="dbtn"><button class="btn pri" id="abClose">Zamknij</button></div></div>`;
