@@ -815,6 +815,15 @@ table.reqt td.no { color: var(--fail); font-weight: 700; } table.reqt td.yes { c
 .schemesvg .ldoffg text { text-decoration: line-through; }
 .ldleg .ldl { pointer-events: auto; }
 .schsticky .schtools .btn.on { background: var(--acc2); border-color: var(--acc); color: var(--acc3); }
+.chsw { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0 0; position: sticky; top: -16px; z-index: 5; background: var(--panel); padding: 6px 0; }
+svg.lchart .pins text { paint-order: stroke; stroke: var(--panel, #fff); stroke-width: 2px; }
+.secnav { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; margin: 4px 0 8px; font-size: 12.5px; }
+.secnav input { width: 70px; text-align: right; }
+#modal .dlg.secpop { max-width: min(760px, 96vw); }
+.elevgrid .hsec .secedit svg { max-width: 100%; }
+.elevbox { position: relative; }
+.elevbox .v3sw { position: absolute; right: 10px; top: 8px; z-index: 2; }
+.elevbox .v3tools { position: absolute; left: 10px; top: 8px; z-index: 2; }
 </style>
 </head>
 <body>
@@ -1239,6 +1248,7 @@ function normalize(S0) {
   if (typeof S.meta.ticks !== 'object' || S.meta.ticks === null || Array.isArray(S.meta.ticks)) S.meta.ticks = {};
   S.meta.repMode = ['full', 'static', 'own'].includes(S.meta.repMode) ? S.meta.repMode : 'full';
   S.meta.own = typeof S.meta.own === 'string' ? S.meta.own : ''; S.meta.ownOn = S.meta.ownOn === true;
+  if (typeof S.meta.tickMan !== 'object' || S.meta.tickMan === null || Array.isArray(S.meta.tickMan)) S.meta.tickMan = {};
   return S;
 }
 
@@ -2419,19 +2429,28 @@ const N = {
   '6.6': { n: 'PN-EN 1995-1-1', t: 'Wytrzymałość systemu k<sub>sys</sub>', s: 'Gdy kilka podobnych elementów w jednakowym rozstawie jest połączonych ciągłym systemem rozdzielającym obciążenie (np. belki stropowe z poszyciem), wytrzymałość pojedynczego elementu można zwiększyć współczynnikiem k<sub>sys</sub> = 1,1.', h: 'Przekrój złożony z kilku elementów połączonych mechanicznie liczony jest jak przekrój lity – połączenie musi zapewnić współpracę.' },
   '7.2': { n: 'PN-EN 1995-1-1', t: 'Graniczne wartości ugięć belek', s: 'Ugięcie netto poniżej linii łączącej podpory w<sub>net,fin</sub> = w<sub>inst</sub> + w<sub>creep</sub> − w<sub>c</sub> = w<sub>fin</sub> − w<sub>c</sub> (rys. 7.1). Zalecane zakresy (tab. 7.2): belki na dwóch podporach w<sub>inst</sub> l/300–l/500, w<sub>net,fin</sub> l/250–l/350, w<sub>fin</sub> l/150–l/300; wsporniki l/150–l/250, l/125–l/175, l/75–l/150.', h: 'W praktyce krajowej (dawna PN-B-03150) przyjmowano u<sub>net,fin</sub> ≤ l/250 dla belek stropowych i l/200 dla belek dachowych – granice ustal z inwestorem. Przy przekroczeniu zwiększ wysokość (I rośnie z h³) lub zastosuj podniesienie wykonawcze.' },
   '7.3.3': { n: 'PN-EN 1995-1-1', t: 'Drgania stropów mieszkalnych', s: 'Dla stropów o częstotliwości f<sub>1</sub> &gt; 8 Hz sprawdza się ugięcie od siły skupionej 1 kN (w/F ≤ a) i prędkość od impulsu jednostkowego (v ≤ b<sup>(f₁ζ−1)</sup>). Stropy o f<sub>1</sub> ≤ 8 Hz wymagają szczegółowej analizy.', f: 'f<sub>1</sub> = π/(2l²)·√((EI)<sub>l</sub>/m) (7.5); v = 4(0,4 + 0,6n<sub>40</sub>)/(mBl + 200) (7.6); n<sub>40</sub> = {[(40/f<sub>1</sub>)² − 1](B/l)⁴(EI)<sub>l</sub>/(EI)<sub>b</sub>}<sup>0,25</sup> (7.7)', h: 'Wartości a i b przyjmuje się z rys. 7.2 (zalecany zakres), zwykle a = 1,5 mm/kN i b = 100. Współczynnik tłumienia ζ ≈ 0,01.' },
+  '6.1.4': { n: 'PN-EN 1995-1-1', t: 'Ściskanie wzdłuż włókien', s: 'Naprężenia ściskające wzdłuż włókien nie mogą przekroczyć wytrzymałości obliczeniowej f<sub>c,0,d</sub>. Przy docisku czoła słupa do blachy podstawy uwzględnia się pole netto (bez nacięcia na blachę wpuszczaną).', f: 'σ<sub>c,0,d</sub> ≤ f<sub>c,0,d</sub> (6.2)', h: 'Przy dużych siłach zastosuj blachę podstawy o większej powierzchni styku albo słup o większym przekroju.' },
+  '8.2.3': { n: 'PN-EN 1995-1-1', t: 'Połączenia stal–drewno na łączniki trzpieniowe (wzory Johansena)', s: 'Nośność charakterystyczna łącznika (sworznia, śruby) na jedną płaszczyznę ścinania zależy od wytrzymałości drewna na docisk f<sub>h,k</sub>, grubości drewna t, średnicy d i momentu uplastycznienia łącznika M<sub>y,Rk</sub>; decyduje najmniejsza z wartości dla możliwych postaci zniszczenia. Dla blachy wpuszczanej (stal jako element środkowy) – wzory (8.11), dla blach zewnętrznych – (8.12) blachy cienkie (t ≤ 0,5d) i (8.13) grube (t ≥ d), pośrednie – interpolacja. Efekt liny F<sub>ax,Rk</sub>/4 dla śrub ograniczony do 25% części Johansena; dla sworzni – 0.', f: 'blacha wpuszczana: F<sub>v,Rk</sub> = min{f<sub>h,1,k</sub>t<sub>1</sub>d; f<sub>h,1,k</sub>t<sub>1</sub>d[√(2 + 4M<sub>y,Rk</sub>/(f<sub>h,1,k</sub>dt<sub>1</sub>²)) − 1] + F<sub>ax</sub>/4; 2,3√(M<sub>y,Rk</sub>f<sub>h,1,k</sub>d) + F<sub>ax</sub>/4}; f<sub>h,0,k</sub> = 0,082(1 − 0,01d)ρ<sub>k</sub> (8.32); f<sub>h,α,k</sub> = f<sub>h,0,k</sub>/(k<sub>90</sub>sin²α + cos²α) (8.31); M<sub>y,Rk</sub> = 0,3f<sub>u,k</sub>d<sup>2,6</sup> (8.30)', h: 'γ<sub>M</sub> dla połączeń wg tab. 2.3 = 1,3. Przy szeregu łączników wzdłuż włókien stosuje się efektywną liczbę n<sub>ef</sub> (8.34). Przy niewystarczającej nośności: większa średnica, więcej łączników, grubszy słup (t<sub>1</sub>).' },
+  '8.5.1': { n: 'PN-EN 1995-1-1', t: 'Śruby i sworznie obciążone poprzecznie – efektywna liczba łączników', s: 'Przy obciążeniu równoległym do włókien nośność szeregu n łączników jest mniejsza niż n-krotność nośności jednego (rozłupywanie drewna). Przy obciążeniu prostopadłym do włókien n<sub>ef</sub> = n.', f: 'n<sub>ef</sub> = min{n; n<sup>0,9</sup>·(a<sub>1</sub>/(13d))<sup>0,25</sup>} (8.34)', h: 'Większy rozstaw a<sub>1</sub> zwiększa n<sub>ef</sub>.' },
+  '8.6': { n: 'PN-EN 1995-1-1', t: 'Minimalne rozstawy i odległości łączników trzpieniowych (tab. 8.5 – śruby, tab. 8.6 – sworznie)', s: 'Rozstaw wzdłuż włókien a<sub>1</sub>, w poprzek włókien a<sub>2</sub>, odległość od końca obciążonego a<sub>3,t</sub> i od krawędzi a<sub>4</sub> zależą od średnicy d i kąta α siły do włókien. Dla sworzni: a<sub>1</sub> = (3 + 2|cos α|)d, a<sub>2</sub> = 3d, a<sub>3,t</sub> = max(7d; 80 mm), a<sub>4,t</sub> = max((2 + 2sin α)d; 3d), a<sub>4,c</sub> = 3d; dla śrub: a<sub>1</sub> = (4 + |cos α|)d, a<sub>2</sub> = 4d.', h: 'Przy odrywaniu słupa od fundamentu czoło słupa jest końcem obciążonym (a<sub>3,t</sub>).' },
+  'A.1': { n: 'PN-EN 1995-1-1, zał. A', t: 'Ścinanie blokowe i wyrwanie bloku drewna', s: 'W połączeniach stal–drewno z wieloma łącznikami obciążonymi wzdłuż włókien może nastąpić wyrwanie bloku drewna objętego łącznikami: rozciąganie na powierzchni czołowej A<sub>net,t</sub> albo ścinanie wzdłuż boków A<sub>net,v</sub>.', f: 'F<sub>bs,Rk</sub> = max{1,5A<sub>net,t</sub>f<sub>t,0,k</sub>; 0,7A<sub>net,v</sub>f<sub>v,k</sub>} (A.1)', h: 'Zwiększ odległość a<sub>3,t</sub> i rozstaw łączników albo grubość drewna.' },
+  'EN 1993-1-8': { n: 'PN-EN 1993-1-8', t: 'Blachy stalowe: docisk łączników i docisk do betonu', s: 'Nośność blachy na docisk łącznika (tab. 3.4): F<sub>b,Rd</sub> = k<sub>1</sub>α<sub>b</sub>f<sub>u</sub>dt/γ<sub>M2</sub>, α<sub>b</sub> = min{e<sub>1</sub>/(3d<sub>0</sub>); f<sub>ub</sub>/f<sub>u</sub>; 1}, γ<sub>M2</sub> = 1,25. Wytrzymałość połączenia z betonem pod blachą podstawy (6.2.5): f<sub>jd</sub> = β<sub>j</sub>·k<sub>j</sub>·f<sub>cd</sub>, β<sub>j</sub> = 2/3.', h: 'Program przyjmuje k<sub>1</sub> = 2,5 (wymagane odległości od krawędzi blachy) i k<sub>j</sub> = 1 (bezpiecznie, bez rozkładu w fundamencie). Grubość blachy podstawy i spoiny należy dobrać osobno.' },
+  'EN 1992-4': { n: 'PN-EN 1992-4', t: 'Kotwy w betonie – interakcja rozciągania i ścinania', s: 'Nośności obliczeniowe kotwy na rozciąganie N<sub>Rd</sub> i ścinanie V<sub>Rd</sub> (najmniejsze z postaci zniszczenia: stal, wyrwanie, stożek betonu, odłupanie krawędzi) podaje Europejska Ocena Techniczna (ETA) kotwy dla przyjętego betonu, głębokości osadzenia i odległości od krawędzi. Przy jednoczesnym działaniu obu sił sprawdza się interakcję.', f: '(N<sub>Ed</sub>/N<sub>Rd</sub>)<sup>1,5</sup> + (V<sub>Ed</sub>/V<sub>Rd</sub>)<sup>1,5</sup> ≤ 1 (7.54, zniszczenie stali i betonu – wariant uproszczony)', h: 'Wpisz N<sub>Rd</sub>, V<sub>Rd</sub> z ETA wybranej kotwy; program nie wyznacza nośności kotew.' },
   '1990': { n: 'PN-EN 1990', t: 'Kombinacje oddziaływań', s: 'W SGN dla sytuacji trwałych i przejściowych stosuje się kombinację (6.10) albo mniej korzystną z (6.10a) i (6.10b). W sytuacji wyjątkowej – (6.11b). W SGU – charakterystyczną (6.14b) i quasi-stałą (6.16b).', f: '(6.10a): Σγ<sub>G</sub>G<sub>k</sub> + Σγ<sub>Q</sub>ψ<sub>0,i</sub>Q<sub>k,i</sub>; (6.10b): Σξγ<sub>G</sub>G<sub>k</sub> + γ<sub>Q,1</sub>Q<sub>k,1</sub> + Σγ<sub>Q</sub>ψ<sub>0,i</sub>Q<sub>k,i</sub>; (6.11b): ΣG<sub>k</sub> + A<sub>d</sub> + ψ<sub>1,1</sub>(ψ<sub>2,1</sub>)Q<sub>k,1</sub> + Σψ<sub>2,i</sub>Q<sub>k,i</sub>', h: 'Wartości ZK PL: γ<sub>G,sup</sub> = 1,35, γ<sub>G,inf</sub> = 1,0, γ<sub>Q</sub> = 1,5, ξ = 0,85; ψ wg tab. A1.1.' },
   '1991': { n: 'PN-EN 1991-1-1', t: 'Obciążenia użytkowe stropów i dachów', s: 'Kategorie użytkowania (tab. 6.1) i wartości q<sub>k</sub>, Q<sub>k</sub> (tab. 6.2, 6.4, 6.8, 6.10): A – mieszkalne (stropy 1,5–2,0 kN/m²), B – biurowe (2,0–3,0), C – zebrań (2,0–7,5), D – handlowe (4,0–5,0), E – magazyny (≥ 7,5), H – dachy niedostępne (0,0–1,0).', h: 'Program przyjmuje górną granicę zakresu × pasmo zbierania obciążenia (rozstaw belek); wartość można wpisać ręcznie.' },
   'fi:2.3': { n: 'PN-EN 1995-1-2', t: 'Wartości obliczeniowe w pożarze', s: 'Wytrzymałość obliczeniowa w pożarze: f<sub>d,fi</sub> = k<sub>mod,fi</sub>·f<sub>20</sub>/γ<sub>M,fi</sub>, gdzie f<sub>20</sub> = k<sub>fi</sub>·f<sub>k</sub> (20% kwantyl), k<sub>fi</sub> = 1,25 drewno lite, 1,15 klejone, 1,1 LVL; w metodzie zredukowanego przekroju k<sub>mod,fi</sub> = 1,0, γ<sub>M,fi</sub> = 1,0.', h: '' },
   'fi:3.4': { n: 'PN-EN 1995-1-2', t: 'Zwęglanie', s: 'Głębokość zwęglenia rośnie liniowo w czasie: d<sub>char,n</sub> = β<sub>n</sub>·t (β<sub>n</sub> = 0,8 mm/min drewno lite iglaste, 0,7 klejone i LVL, 0,55–0,7 liściaste). Okładzina (np. płyta g-k) opóźnia początek zwęglania do t<sub>ch</sub> i spowalnia je (k<sub>2</sub>) do chwili jej zniszczenia t<sub>f</sub>, po czym zwęglanie przyspiesza (k<sub>3</sub> = 2) do głębokości 25 mm.', f: 'płyta g-k typu A, F, H: t<sub>ch</sub> = 2,8h<sub>p</sub> − 14 (3.11); k<sub>2</sub> = 1 − 0,018h<sub>p</sub> (3.10)', h: 'Czas zniszczenia okładziny t<sub>f</sub> dla płyt typu F należy przyjąć z badań producenta.' },
   'fi:4.2.2': { n: 'PN-EN 1995-1-2', t: 'Metoda zredukowanego przekroju', s: 'Przekrój efektywny otrzymuje się odejmując od przekroju początkowego efektywną głębokość zwęglenia d<sub>ef</sub> po ogrzewanych stronach; przyjmuje się, że materiał w pozostałym przekroju ma pełną wytrzymałość i sztywność (wartości 20% kwantyla).', f: 'd<sub>ef</sub> = d<sub>char,n</sub> + k<sub>0</sub>·d<sub>0</sub>, d<sub>0</sub> = 7 mm; k<sub>0</sub> = t/20 dla t &lt; 20 min, 1,0 dla t ≥ 20 min (tab. 4.1)', h: 'Kombinacja wg PN-EN 1990 (6.11b) z ψ<sub>2,1</sub> (zalecane w PN-EN 1991-1-2, 4.3.1) lub ψ<sub>1,1</sub>. Docisku w poprzek włókien w pożarze zwykle nie sprawdza się.' },
 };
-const ALIAS = { '6.11': '6.1.6', '6.12': '6.1.6', '6.13': '6.1.7', '6.14': '6.1.8', '6.17': '6.2.3', '6.18': '6.2.3', '6.19': '6.2.4', '6.20': '6.2.4', '6.23': '6.3.2', '6.24': '6.3.2', '6.31': '6.3.3', '6.32': '6.3.3', '6.33': '6.3.3', '6.34': '6.3.3', '6.35': '6.3.3', '6.60': '6.5.2', '6.62': '6.5.2', '6.10': '1990', '6.10a': '1990', '6.10b': '1990', '6.11b': '1990', '6.14b': '1990', '6.16b': '1990', '3.1': '3.1.3', '3.2.4': '3.1.4', '2.14': '2.4.1', '7.5': '7.3.3', '7.6': '7.3.3', '7.7': '7.3.3', '6.1': '6.3.3', '7.1': '7.2', '2.3': '2.4.1', '2.2': '2.3.1.2', '3.2': '3.1.4' };
+const ALIAS = { '6.11': '6.1.6', '6.12': '6.1.6', '6.13': '6.1.7', '6.14': '6.1.8', '6.17': '6.2.3', '6.18': '6.2.3', '6.19': '6.2.4', '6.20': '6.2.4', '6.23': '6.3.2', '6.24': '6.3.2', '6.31': '6.3.3', '6.32': '6.3.3', '6.33': '6.3.3', '6.34': '6.3.3', '6.35': '6.3.3', '6.60': '6.5.2', '6.62': '6.5.2', '6.10': '1990', '6.10a': '1990', '6.10b': '1990', '6.11b': '1990', '6.14b': '1990', '6.16b': '1990', '3.1': '3.1.3', '3.2.4': '3.1.4', '2.14': '2.4.1', '7.5': '7.3.3', '7.6': '7.3.3', '7.7': '7.3.3', '6.1': '6.3.3', '7.1': '7.2', '2.3': '2.4.1', '2.2': '2.3.1.2', '3.2': '3.1.4', '8.11': '8.2.3', '8.12': '8.2.3', '8.13': '8.2.3', '8.30': '8.2.3', '8.31': '8.2.3', '8.32': '8.2.3', '8.33': '8.2.3', '8.34': '8.5.1', '8.5': '8.6', '6.2': '6.1.4' };
 function key(ref, grp) {
   if (!ref) return null;
   let r = String(ref).replace(/\(.*$/, '').trim();
   if (/^Pożar|1995-1-2/.test(grp || '')) { if (N['fi:' + r]) return 'fi:' + r; if (r === '4.2.2' || r === '3.4' || r === '2.3') return 'fi:' + r; }
   if (N[r]) return r;
   if (ALIAS[r]) return ALIAS[r];
+  if (/^8\.5\.1/.test(r)) return '8.5.1';
+  if (/^8\.(2|3)/.test(r)) return '8.2.3';
   const p = r.split('.'); while (p.length > 1) { p.pop(); if (N[p.join('.')]) return p.join('.'); }
   return null;
 }
@@ -2456,6 +2475,7 @@ function linkRefs(root) {
         // liczby dziesiętne z przecinkiem nie są odnośnikami; pomijamy wartości liczbowe jak „0.5”
         const prev = t[m.index - 1] || '';
         if (/[\d,]/.test(prev)) continue;
+        if (/199[1-4]-\d(-\d)?[,\s]*(tab\.\s*)?$/.test(t.slice(Math.max(0, m.index - 20), m.index + (m[1] ? m[1].length : 0)))) continue;
         if (!m[2] && !m[4] && tok.split('.').length < 3 && !/^[67]\.\d$/.test(tok)) continue;
         const k = key(tok, fi ? 'Pożar' : '');
         if (!k) continue;
@@ -3092,13 +3112,18 @@ function recalc() {
   renderActive();
 }
 // warunek, który przestał być spełniony, jest odznaczany; spełniony ponownie – zaznaczany (jeśli był)
+// odhaczanie sprawdzeń: automatycznie – spełnione zaznaczone, niespełnione odznaczone; ręczna zmiana (tickMan) obowiązuje,
+// dopóki warunek nie zmieni stanu (wtedy znów automatycznie)
 function syncTicks() {
   if (!R || !R.checks) return;
-  const T = S.meta.ticks || (S.meta.ticks = {});
+  const M = S.meta.tickMan && typeof S.meta.tickMan === 'object' ? S.meta.tickMan : (S.meta.tickMan = {});
   const st = {}; R.checks.forEach(c => { st[c.id] = c.status; });
-  if (prevStat) Object.keys(st).forEach(k => { if (prevStat[k] && prevStat[k] !== st[k]) { if (st[k] === 'fail') { if (T[k]) T['~' + k] = 1; delete T[k]; } else if (T['~' + k]) { T[k] = true; delete T['~' + k]; } } });
+  if (prevStat) Object.keys(st).forEach(k => { if (prevStat[k] && prevStat[k] !== st[k]) delete M[k]; });
   prevStat = st;
+  const T = {}; R.checks.forEach(c => { const v = c.id in M ? M[c.id] : c.status !== 'fail'; if (v) T[c.id] = true; });
+  S.meta.ticks = T;
 }
+U.syncTicks = syncTicks;
 function renderStatus() {
   const el = $('#status');
   const set = (cls, txt) => { el.className = cls; el.textContent = txt; };
@@ -3108,7 +3133,7 @@ function renderStatus() {
   else if (warns) set('warn', `✔ Nośność OK · uwagi: ${warns} · η = ${fmt(R.maxEta * 100, 0)}%`);
   else set('ok', `✔ Wszystkie warunki spełnione · η = ${fmt(R.maxEta * 100, 0)}%`);
 }
-const DSUM = [['SGN', 'zginanie', x => /^SGN – zginanie/.test(x.grp)], ['SGN', 'ścinanie', x => /^SGN – ścinanie/.test(x.grp)], ['SGN', 'docisk', x => /^SGN – docisk/.test(x.grp)], ['SGN', 'stateczność', x => /^SGN – stateczność/.test(x.grp)], ['SGU', 'ugięcia', x => /ugięcia/.test(x.grp)], ['SGU', 'drgania', x => /drgania/.test(x.grp)], ['', 'pożar', x => /^Pożar/.test(x.grp)], ['', 'konstrukcja', x => /^Konstrukcja/.test(x.grp)]];
+const DSUM = [['SGN', 'zginanie', x => /^SGN – zginanie/.test(x.grp)], ['SGN', 'ścinanie', x => /^SGN – ścinanie/.test(x.grp)], ['SGN', 'docisk', x => /^SGN – docisk/.test(x.grp)], ['SGN', 'stateczność', x => /^SGN – stateczność/.test(x.grp)], ['SGU', 'ugięcia', x => /ugięcia/.test(x.grp)], ['SGU', 'drgania', x => /drgania/.test(x.grp)], ['', 'słup i stopa', x => /^Słup/.test(x.grp)], ['', 'pożar', x => /^Pożar/.test(x.grp)], ['', 'konstrukcja', x => /^Konstrukcja/.test(x.grp)]];
 function dsumHTML() {
   if (!R || !R.checks) return '';
   if (R.errors && R.errors.length) return `<div class="dsum"><span class="dsb fail">✖ błąd danych – wyniki niedostępne</span></div>`;
@@ -3821,7 +3846,7 @@ function renderSection(el) {
   h += `<div class="flex">`;
   uniq.forEach((sg, k) => {
     const sec = sg.sec, sb = E.strengthBase(mt, sec), fd = R.fireData ? R.fireData.segs.find(q => q.seg.i === sg.i) : null;
-    h += `<div class="box"><h4>Przekrój ${md.segs.filter(q => q.sec.b === sec.b && q.sec.h === sec.h).map(q => esc(q.label)).join(', ')}</h4><div class="flex">${sectionSVG(sec, { id: 's' + k, glulam: /^GL/.test(mt.m.fam), fire: fd, fireTop: S.fire.sides === 4 })}
+    h += `<div class="box"><h4>Przekrój ${md.segs.filter(q => q.sec.b === sec.b && q.sec.h === sec.h).map(q => esc(q.label)).join(', ')} <button class="lnk" data-geo="${sg.i}">zmień…</button></h4><div class="flex"><div class="xclick secedit" data-geo="${sg.i}" title="Kliknij przekrój, aby zmienić wymiary, liczbę elementów i materiał">${sectionSVG(sec, { id: 's' + k, glulam: /^GL/.test(mt.m.fam), fire: fd, fireTop: S.fire.sides === 4 })}</div>
       <table class="kv"><tr><td>b × h</td><td>${S.geom.n > 1 ? S.geom.n + '×' : ''}${fmt(sec.b1, 0)} × ${fmt(sec.h, 0)}</td><td>mm</td></tr><tr><td>A</td><td>${fmt(sec.A / 100, 1)}</td><td>cm²</td></tr>
       <tr><td>I<sub>y</sub></td><td>${fmt(sec.Iy / 1e4, 0)}</td><td>cm⁴</td></tr><tr><td>W<sub>y</sub></td><td>${fmt(sec.Wy / 1e3, 1)}</td><td>cm³</td></tr><tr><td>I<sub>z</sub></td><td>${fmt(sec.Iz / 1e4, 0)}</td><td>cm⁴</td></tr><tr><td>W<sub>z</sub></td><td>${fmt(sec.Wz / 1e3, 1)}</td><td>cm³</td></tr>
       <tr><td>i<sub>y</sub> / i<sub>z</sub></td><td>${fmt(sec.iy, 1)} / ${fmt(sec.iz, 1)}</td><td>mm</td></tr><tr><td>I<sub>tor</sub> (β = ${fmt(sec.tc.beta, 3)})</td><td>${fmt(sec.It / 1e4, 0)}</td><td>cm⁴</td></tr><tr><td>W<sub>tor</sub> (α = ${fmt(sec.tc.alpha, 3)})</td><td>${fmt(sec.Wt / 1e3, 1)}</td><td>cm³</td></tr>
@@ -3849,6 +3874,7 @@ function renderSection(el) {
   h += `</table><p class="hint">σ<sub>m,crit</sub> = π·√(E<sub>0,05</sub>I<sub>z</sub>G<sub>0,05</sub>I<sub>tor</sub>)/(l<sub>ef</sub>W<sub>y</sub>) (6.31); λ<sub>rel,m</sub> = √(f<sub>m,k</sub>/σ<sub>m,crit</sub>); k<sub>crit</sub> wg (6.34). Wyboczenie ma znaczenie tylko przy ściskaniu osiowym.</p></div>`;
   el.innerHTML = h;
   $$('[data-ck]', el).forEach(c => { c.classList.add('xclick'); c.title = 'Kliknij – tok obliczeń'; c.addEventListener('click', () => { const ck = R.checks.find(q => q.id === c.dataset.ck); if (ck) explainPopup(ck); }); });
+  $$('[data-geo]', el).forEach(b => b.addEventListener('click', () => geoPopup(+b.dataset.geo)));
 }
 
 /* ------------------------------------------------------------- wykresy */
@@ -3901,25 +3927,65 @@ function serAt(se, x) {
   for (let i = 0; i < xs.length - 1; i++) if (x >= xs[i] - 1e-9 && x <= xs[i + 1] + 1e-9 && xs[i + 1] > xs[i]) return ys[i] + (ys[i + 1] - ys[i]) * (x - xs[i]) / (xs[i + 1] - xs[i]);
   return null;
 }
-function bindChartCursor(root) {
-  $$('svg.lchart', root).forEach(svg => {
-    const C = CHARTS[svg.dataset.cid]; if (!C) return;
-    const g = $('.cur', svg), hit = $('.hit', svg);
-    hit.addEventListener('mousemove', e => {
-      const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * C.W / r.width;
-      const x = C.xmin + (px - C.ml) / (C.W - C.ml - C.mr) * (C.xmax - C.xmin);
-      g.style.display = '';
-      $('.curl', g).setAttribute('x1', px); $('.curl', g).setAttribute('x2', px);
-      const vals = C.series.filter(se => se.l).map(se => { const v = serAt(se, x); return v === null ? '' : `${se.l}: ${fmt(v, C.dp)}`; }).filter(Boolean);
-      let d = ''; C.series.forEach(se => { const v = serAt(se, x); if (v !== null) d += `<circle cx="${px}" cy="${C.Y(v)}" r="2.5" fill="${se.c}"/>`; });
-      $('.curd', g).innerHTML = d;
-      const t = $('.curt', g); t.textContent = `x = ${fmt(x, 2)} m · ${vals.join(' · ')} ${C.unit}`;
-      const tw = t.getComputedTextLength ? t.getComputedTextLength() : 200;
-      const left = px + 8 + tw > C.W - 4 ? px - 8 - tw : px + 8;
-      t.setAttribute('x', left); const bg = $('.curbg', g); bg.setAttribute('x', left - 4); bg.setAttribute('width', tw + 8);
+// znaczniki na wykresach (LPM – dodaj / usuń w tym miejscu, PPM – usuń wszystkie): wspólne położenia x [m]
+const chartPins = [];
+function drawPins(svg) {
+  const C = CHARTS[svg.dataset.cid]; if (!C) return;
+  let g = svg.querySelector('g.pins'); if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.setAttribute('class', 'pins'); svg.insertBefore(g, svg.querySelector('g.cur')); }
+  let s = ''; const boxes = [];
+  chartPins.forEach(xm => {
+    if (xm < C.xmin - 1e-9 || xm > C.xmax + 1e-9) return;
+    const px = C.X(xm);
+    s += `<line x1="${px.toFixed(1)}" y1="${C.mt}" x2="${px.toFixed(1)}" y2="${C.H - C.mb}" stroke="#a35d00" stroke-width="0.8" stroke-dasharray="2 3"/>`;
+    const xt = `x = ${fmt(xm, 2)}`, xw = xt.length * 5.4 + 6;
+    s += `<rect x="${(px - xw / 2).toFixed(1)}" y="${C.H - C.mb - 12}" width="${xw.toFixed(1)}" height="12" rx="2" fill="#a35d00" fill-opacity="0.9"/>` + tx(px, C.H - C.mb - 3, xt, { fs: 9, c: '#ffffff', w: 600 });
+    const seen = [];
+    C.series.forEach(se => {
+      const v = serAt(se, xm); if (v === null || !isFinite(v) || seen.some(q => Math.abs(q - v) < 1e-6)) return; seen.push(v);
+      if (Math.abs(v) < 0.5 * Math.pow(10, -C.dp) && C.series.some(q => { const w = serAt(q, xm); return w !== null && Math.abs(w) >= 0.5 * Math.pow(10, -C.dp); })) return;
+      const py = C.Y(v), lab = fmt(v, C.dp), tw = lab.length * 5.8 + 4;
+      const cand = [[px, py - 6], [px, py + 13], [px + tw / 2 + 6, py + 3], [px - tw / 2 - 6, py + 3], [px, py - 17], [px, py + 24]];
+      const ok = cand.find(([x, y]) => !boxes.some(b => Math.abs(b[0] - x) < (tw + b[2]) / 2 && Math.abs(b[1] - y) < 11) && y > C.mt && y < C.H - C.mb - 12) || cand[0];
+      boxes.push([ok[0], ok[1], tw]);
+      s += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="${se.c}" stroke="#ffffff" stroke-width="0.8"/><rect x="${(ok[0] - tw / 2).toFixed(1)}" y="${(ok[1] - 9).toFixed(1)}" width="${tw.toFixed(1)}" height="11" rx="2" fill="#ffffff" fill-opacity="0.85"/>` + tx(ok[0], ok[1], lab, { fs: 10, c: se.c, w: 650 });
     });
-    hit.addEventListener('mouseleave', () => { g.style.display = 'none'; });
   });
+  g.innerHTML = s;
+}
+function bindChartCursor(root) {
+  const svgs = $$('svg.lchart', root);
+  const xOf = (svg, e) => { const C = CHARTS[svg.dataset.cid], r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * C.W / r.width; const x = C.xmin + (px - C.ml) / (C.W - C.ml - C.mr) * (C.xmax - C.xmin); return x < C.xmin - 1e-9 || x > C.xmax + 1e-9 ? null : x; };
+  const show = x => svgs.forEach(svg => {
+    const C = CHARTS[svg.dataset.cid]; if (!C) return;
+    const g = $('.cur', svg);
+    if (x === null) { g.style.display = 'none'; return; }
+    const px = C.X(x);
+    g.style.display = '';
+    $('.curl', g).setAttribute('x1', px); $('.curl', g).setAttribute('x2', px);
+    const vals = C.series.filter(se => se.l).map(se => { const v = serAt(se, x); return v === null ? '' : `${se.l}: ${fmt(v, C.dp)}`; }).filter(Boolean);
+    let d = ''; C.series.forEach(se => { const v = serAt(se, x); if (v !== null) d += `<circle cx="${px}" cy="${C.Y(v)}" r="2.5" fill="${se.c}"/>`; });
+    $('.curd', g).innerHTML = d;
+    const t = $('.curt', g); t.textContent = `x = ${fmt(x, 2)} m · ${vals.join(' · ')} ${C.unit}`;
+    const tw = t.getComputedTextLength ? t.getComputedTextLength() : 200;
+    const left = px + 8 + tw > C.W - 4 ? px - 8 - tw : px + 8;
+    t.setAttribute('x', left); const bg = $('.curbg', g); bg.setAttribute('x', left - 4); bg.setAttribute('width', tw + 8);
+  });
+  const updBar = () => { const b = $('#pinClr', root); if (b) b.style.display = chartPins.length ? '' : 'none'; };
+  svgs.forEach(svg => {
+    const C = CHARTS[svg.dataset.cid]; if (!C) return;
+    svg.style.cursor = 'crosshair';
+    svg.addEventListener('mousemove', e => show(xOf(svg, e)));
+    svg.addEventListener('mouseleave', () => show(null));
+    svg.addEventListener('click', e => {
+      const x = xOf(svg, e); if (x === null) return;
+      const tol = 7 * (C.xmax - C.xmin) / (C.W - C.ml - C.mr), j = chartPins.findIndex(v => Math.abs(v - x) <= tol);
+      if (j >= 0) chartPins.splice(j, 1); else { chartPins.push(+x.toFixed(3)); if (chartPins.length > 10) chartPins.shift(); }
+      svgs.forEach(drawPins); updBar();
+    });
+    svg.addEventListener('contextmenu', e => { e.preventDefault(); if (!chartPins.length) return; chartPins.length = 0; svgs.forEach(drawPins); updBar(); toast('Usunięto znaczniki z wykresów.', 1500); });
+  });
+  svgs.forEach(drawPins); updBar();
+  const pc = $('#pinClr', root); if (pc) pc.onclick = () => { chartPins.length = 0; svgs.forEach(drawPins); updBar(); };
 }
 function envSeries(env, k, stX, mul) {
   mul = mul || 1;
@@ -3936,46 +4002,53 @@ function extremeMarks(st, arrMx, arrMn, md, col, dp) {
   return marks;
 }
 let chartItems = false;
+let chartSel = (() => { try { return localStorage.getItem('belkadr-chart') || 'M'; } catch (e) { return 'M'; } })();
 function renderCharts(el) {
   const md = R.md, st = R.st, W = Math.max(640, Math.min(1400, (el.clientWidth || 1000) - 30));
+  Object.keys(CHARTS).forEach(k => delete CHARTS[k]);
   const vl = md.sups.map(p => ({ x: p.x, l: p.label }));
-  let h = `<p class="hint">Najedź kursorem na wykres – wartości w tym miejscu belki. Obwiednie SGN obejmują wszystkie kombinacje (PN-EN 1990) z obciążeniami zmiennymi tylko tam, gdzie działają niekorzystnie.</p>
-    <label class="chk"><input type="checkbox" id="chItems" ${chartItems ? 'checked' : ''}> Wykresy M i V od poszczególnych obciążeń (wartości charakterystyczne) zamiast obwiedni</label>`;
-  h += `<div class="box"><h4>Schemat obciążeń <small style="font-weight:400;color:var(--ink3)">wartości charakterystyczne; [Z] – poziomo, [⊥] – prostopadle do osi</small></h4>${schemeSVG(W)}</div>`;
-  h += `<div class="box" style="margin-top:12px"><h4>Reakcje podporowe</h4>${reactionsHTML()}</div>`;
+  const hasN = st.need.x || st.items.some(o => o.it.N);
+  const avail = [['M', 'M'], ['V', 'V'], ...(hasN ? [['N', 'N']] : []), ...(st.need.z ? [['Mz', 'M_z, V_z']] : []), ...(st.need.t ? [['T', 'T']] : []), ['w', 'ugięcia'], ['eta', 'wytężenie η'], ['R', 'reakcje'], ['comb', 'kombinacje'], ['all', 'wszystkie']];
+  if (!avail.some(a => a[0] === chartSel)) chartSel = 'M';
+  const on = k => chartSel === 'all' || chartSel === k;
+  let h = `<p class="hint">Najedź kursorem na wykres – wartości w tym miejscu belki. <b>Kliknij wykres</b> – znacznik: kropki i wartości w tym miejscu na wszystkich wykresach; kliknięcie przy znaczniku – usunięcie; <b>prawy przycisk</b> – usunięcie wszystkich znaczników. <button class="lnk" id="pinClr" style="display:none">usuń znaczniki</button></p>`;
+  h += `<div class="box"><h4>Schemat obciążeń <small style="font-weight:400;color:var(--ink3)">wartości charakterystyczne; [Z] – poziomo, [⊥] – prostopadle do osi; kliknij przęsło lub obciążenie, aby je zmienić</small></h4>${schemeSVG(W)}</div>`;
+  h += `<div class="chsw"><span class="segsw" role="tablist" aria-label="Wykres">${avail.map(([k, l]) => `<button data-chs="${k}" class="${chartSel === k ? 'on' : ''}">${l}</button>`).join('')}</span>${on('M') || on('V') ? `<label class="chk sm"><input type="checkbox" id="chItems" ${chartItems ? 'checked' : ''}> od poszczególnych obciążeń (char.) zamiast obwiedni</label>` : ''}</div>`;
   const ch = (o) => `<div class="box" style="margin-top:12px">${lineChart(Object.assign({ W, vl }, o))}</div>`;
   const x = Array.from(st.stX);
-  if (chartItems) {
+  if (on('R')) h += `<div class="box" style="margin-top:12px"><h4>Reakcje podporowe</h4>${reactionsHTML()}</div>`;
+  if (chartItems && (on('M') || on('V'))) {
     const cols = ['#4a5466', '#1d5bb8', '#0e8fa8', '#1d7f3c', '#6a3fb5', '#b5651d', '#c0262d', '#0b7285'];
     const ser = k => st.items.map((o, j) => { const a = new Float64Array(x.length); o.units.forEach(u => { for (let i = 0; i < a.length; i++) a[i] += u[k][i]; }); return { x, y: Array.from(a), c: cols[j % cols.length], l: o.key, w: 1.3 }; });
-    h += ch({ title: 'Momenty zginające M_y [kNm] od poszczególnych obciążeń (char.)', series: ser('My'), yl: 'M [kNm]', invert: true, unit: 'kNm' });
-    h += ch({ title: 'Siły poprzeczne V_y [kN] od poszczególnych obciążeń (char.)', series: ser('Vy'), yl: 'V [kN]', unit: 'kN' });
+    if (on('M')) h += ch({ title: 'Momenty zginające M_y [kNm] od poszczególnych obciążeń (char.)', series: ser('My'), yl: 'M [kNm]', invert: true, unit: 'kNm' });
+    if (on('V')) h += ch({ title: 'Siły poprzeczne V_y [kN] od poszczególnych obciążeń (char.)', series: ser('Vy'), yl: 'V [kN]', unit: 'kN' });
   } else {
-    const M = envSeries(R.env.uls, 'My', st.stX), Mk = envSeries(R.env.char, 'My', st.stX);
-    h += ch({ title: 'Momenty zginające M_y [kNm] – po stronie włókien rozciąganych', series: [{ x, y: M.mx, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed max' }, { x, y: M.mn, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed min' }, { x, y: Mk.mx, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k max' }, { x, y: Mk.mn, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k min' }], yl: 'M [kNm]', invert: true, unit: 'kNm', marks: extremeMarks(st, M.mx, M.mn, md, '#c0262d', 2) });
-    const V = envSeries(R.env.uls, 'Vy', st.stX);
-    h += ch({ title: 'Siły poprzeczne V_y [kN]', series: [{ x, y: V.mx, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed max' }, { x, y: V.mn, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed min' }], yl: 'V [kN]', unit: 'kN', marks: extremeMarks(st, V.mx, V.mn, md, '#1d5bb8', 2) });
+    if (on('M')) { const M = envSeries(R.env.uls, 'My', st.stX), Mk = envSeries(R.env.char, 'My', st.stX);
+      h += ch({ title: 'Momenty zginające M_y [kNm] – po stronie włókien rozciąganych', series: [{ x, y: M.mx, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed max' }, { x, y: M.mn, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed min' }, { x, y: Mk.mx, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k max' }, { x, y: Mk.mn, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k min' }], yl: 'M [kNm]', invert: true, unit: 'kNm', H: 300, marks: extremeMarks(st, M.mx, M.mn, md, '#c0262d', 2) }); }
+    if (on('V')) { const V = envSeries(R.env.uls, 'Vy', st.stX);
+      h += ch({ title: 'Siły poprzeczne V_y [kN]', series: [{ x, y: V.mx, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed max' }, { x, y: V.mn, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed min' }], yl: 'V [kN]', unit: 'kN', H: 300, marks: extremeMarks(st, V.mx, V.mn, md, '#1d5bb8', 2) }); }
   }
-  if (st.need.z) {
+  if (on('Mz') && st.need.z) {
     const Mz = envSeries(R.env.uls, 'Mz', st.stX), Vz = envSeries(R.env.uls, 'Vz', st.stX);
     h += ch({ title: 'Momenty zginające M_z [kNm] (płaszczyzna pozioma)', series: [{ x, y: Mz.mx, c: '#6a3fb5', fill: '#b597ee', l: 'M_z,Ed max' }, { x, y: Mz.mn, c: '#6a3fb5', fill: '#b597ee', l: 'M_z,Ed min' }], yl: 'M_z [kNm]', invert: true, unit: 'kNm', marks: extremeMarks(st, Mz.mx, Mz.mn, md, '#6a3fb5', 2) });
     h += ch({ title: 'Siły poprzeczne V_z [kN]', series: [{ x, y: Vz.mx, c: '#6a3fb5', l: 'V_z,Ed max' }, { x, y: Vz.mn, c: '#6a3fb5', l: 'V_z,Ed min' }], yl: 'V_z [kN]', unit: 'kN' });
   }
-  if (st.need.x || st.items.some(o => o.it.N)) { const N = envSeries(R.env.uls, 'N', st.stX); h += ch({ title: 'Siła podłużna N [kN] (+ ściskanie)', series: [{ x, y: N.mx, c: '#6a3fb5', fill: '#b597ee', l: 'N_Ed max' }, { x, y: N.mn, c: '#6a3fb5', l: 'N_Ed min' }], yl: 'N [kN]', unit: 'kN', marks: extremeMarks(st, N.mx, N.mn, md, '#6a3fb5', 1) }); }
-  if (st.need.t) { const T = envSeries(R.env.uls, 'T', st.stX); h += ch({ title: 'Momenty skręcające T [kNm]', series: [{ x, y: T.mx, c: '#b5651d', fill: '#e6a35a', l: 'T_Ed max' }, { x, y: T.mn, c: '#b5651d', l: 'T_Ed min' }], yl: 'T [kNm]', unit: 'kNm', marks: extremeMarks(st, T.mx, T.mn, md, '#b5651d', 2) }); }
-  // ugięcia z granicami
-  const D = R.defl, w = k => Array.from(D[k], v => v * 1000);
-  const hseg = [];
-  md.segs.forEach(sg => { const sd = R.slsData[sg.i], lim = sd.lim; [[1, '#c0262d', 'w_net,fin'], [0, '#a35d00', 'w_inst']].forEach(([j, c, l]) => { if (S.sls.use[j] && lim[j] > 0) { const v = sd.Lmm / lim[j]; hseg.push({ x0: sg.x0, x1: sg.x1, y: v, c, l: j === 1 ? `${sd.cant ? 'l_w' : 'L'}/${lim[j]}` : '' }); } }); });
-  h += ch({ title: 'Ugięcia [mm] – względem podpór (przęsła: od cięciwy)', series: [{ x, y: w('instMx'), c: '#a35d00', l: 'w_inst' }, { x, y: w('finMx'), c: '#1d7f3c', fill: '#a6c76a', l: 'w_fin' }, { x, y: w('instMn'), c: '#a35d00', w: 1 }, { x, y: w('finMn'), c: '#1d7f3c', w: 1 }], yl: 'w [mm]', invert: true, unit: 'mm', dp: 1, hseg, marks: extremeMarks(st, w('finMx'), w('finMn'), md, '#1d7f3c', 1) });
-  if (R.deflZ) { const wz = k => Array.from(R.deflZ[k], v => v * 1000); h += ch({ title: 'Ugięcia poziome w_z [mm]', series: [{ x, y: wz('instMx'), c: '#a35d00', l: 'w_z,inst' }, { x, y: wz('finMx'), c: '#6a3fb5', l: 'w_z,fin' }, { x, y: wz('finMn'), c: '#6a3fb5', w: 1 }], yl: 'w_z [mm]', invert: true, unit: 'mm', dp: 1 }); }
-  // wytężenie
-  const eb = Array.from(R.eta.bend, v => v * 100), es = Array.from(R.eta.shear, v => v * 100), et = Array.from(R.eta.stab, v => v * 100);
-  h += ch({ title: 'Wytężenie wzdłuż belki η(x) [%] – SGN (obwiednia wszystkich kombinacji)', series: [{ x, y: eb, c: '#c0262d', l: 'zginanie', fill: '#e6b3b3' }, { x, y: et, c: '#a35d00', l: 'stateczność' }, { x, y: es, c: '#1d5bb8', l: 'ścinanie' }], hl: [{ y: 100, c: '#c0262d' }], yl: 'η [%]', unit: '%', dp: 0 });
-  h += `<div class="box" style="margin-top:12px"><h4>Kombinacje SGN (PN-EN 1990) i ich wyniki</h4>${combosHTML()}</div>`;
+  if (on('N') && hasN) { const N = envSeries(R.env.uls, 'N', st.stX); h += ch({ title: 'Siła podłużna N [kN] (+ ściskanie)', series: [{ x, y: N.mx, c: '#6a3fb5', fill: '#b597ee', l: 'N_Ed max' }, { x, y: N.mn, c: '#6a3fb5', l: 'N_Ed min' }], yl: 'N [kN]', unit: 'kN', H: 260, marks: extremeMarks(st, N.mx, N.mn, md, '#6a3fb5', 1) }); }
+  if (on('T') && st.need.t) { const T = envSeries(R.env.uls, 'T', st.stX); h += ch({ title: 'Momenty skręcające T [kNm]', series: [{ x, y: T.mx, c: '#b5651d', fill: '#e6a35a', l: 'T_Ed max' }, { x, y: T.mn, c: '#b5651d', l: 'T_Ed min' }], yl: 'T [kNm]', unit: 'kNm', H: 260, marks: extremeMarks(st, T.mx, T.mn, md, '#b5651d', 2) }); }
+  if (on('w')) {
+    const D = R.defl, w = k => Array.from(D[k], v => v * 1000);
+    const hseg = [];
+    md.segs.forEach(sg => { const sd = R.slsData[sg.i], lim = sd.lim; [[1, '#c0262d'], [0, '#a35d00']].forEach(([j, c]) => { if (S.sls.use[j] && lim[j] > 0) { const v = sd.Lmm / lim[j]; hseg.push({ x0: sg.x0, x1: sg.x1, y: v, c, l: `${sd.cant ? 'l_w' : 'L'}/${lim[j]}` }); } }); });
+    h += ch({ title: 'Ugięcia [mm] – względem podpór (przęsła: od cięciwy); linie przerywane – granice w_net,fin i w_inst', series: [{ x, y: w('instMx'), c: '#a35d00', l: 'w_inst' }, { x, y: w('finMx'), c: '#1d7f3c', fill: '#a6c76a', l: 'w_fin' }, { x, y: w('instMn'), c: '#a35d00', w: 1 }, { x, y: w('finMn'), c: '#1d7f3c', w: 1 }], yl: 'w [mm]', invert: true, unit: 'mm', dp: 1, H: 300, hseg, marks: extremeMarks(st, w('finMx'), w('finMn'), md, '#1d7f3c', 1) });
+    if (R.deflZ) { const wz = k => Array.from(R.deflZ[k], v => v * 1000); h += ch({ title: 'Ugięcia poziome w_z [mm]', series: [{ x, y: wz('instMx'), c: '#a35d00', l: 'w_z,inst' }, { x, y: wz('finMx'), c: '#6a3fb5', l: 'w_z,fin' }, { x, y: wz('finMn'), c: '#6a3fb5', w: 1 }], yl: 'w_z [mm]', invert: true, unit: 'mm', dp: 1 }); }
+  }
+  if (on('eta')) { const eb = Array.from(R.eta.bend, v => v * 100), es = Array.from(R.eta.shear, v => v * 100), et = Array.from(R.eta.stab, v => v * 100);
+    h += ch({ title: 'Wytężenie wzdłuż belki η(x) [%] – SGN (obwiednia wszystkich kombinacji)', series: [{ x, y: eb, c: '#c0262d', l: 'zginanie', fill: '#e6b3b3' }, { x, y: et, c: '#a35d00', l: 'stateczność' }, { x, y: es, c: '#1d5bb8', l: 'ścinanie' }], hseg: [{ x0: 0, x1: md.Ltot, y: 100, c: '#c0262d', l: '100%' }], yl: 'η [%]', unit: '%', dp: 0, H: 300 }); }
+  if (on('comb')) h += `<div class="box" style="margin-top:12px"><h4>Kombinacje SGN (PN-EN 1990) i ich wyniki</h4>${combosHTML()}</div>`;
   el.innerHTML = h;
   bindChartCursor(el);
-  $('#chItems', el).onchange = e => { chartItems = e.target.checked; rendered.chart = false; renderActive(); };
+  const ci = $('#chItems', el); if (ci) ci.onchange = e => { chartItems = e.target.checked; rendered.chart = false; renderActive(); };
+  $$('[data-chs]', el).forEach(b => b.addEventListener('click', () => { chartSel = b.dataset.chs; try { localStorage.setItem('belkadr-chart', chartSel); } catch (e) { /* */ } rendered.chart = false; renderActive(); }));
   bindScheme(el);
 }
 function reactionsHTML() {
@@ -3999,53 +4072,6 @@ function combosHTML() {
 }
 
 /* ----------------------------------------------- zakładka Belka i podpory (rysunek) */
-function elevationSVG(W, o) {
-  o = o || {};
-  const md = R.md, ext0 = md.extL, ext1 = md.extR, Lm = md.Lmember;
-  const ml = 40, mr = 40, sx = (W - ml - mr) / Lm;
-  const hmax = Math.max(...md.segs.map(s => s.h));
-  const vs = Math.min(Math.max(sx, 70 / hmax * 1000), 160 / hmax * 1000);       // skala pionowa (przewyższenie dla czytelności)
-  const X = x => ml + (x + ext0) * sx, Hh = h => h / 1000 * vs;
-  const yTop = 40, H = yTop + Hh(hmax) + 120;
-  let s = svgOpen(W, H, 'class="elev"');
-  // belka – zarys z podcięciami
-  md.segs.forEach(sg => {
-    let xa = X(sg.x0), xb = X(sg.x1);
-    if (sg.i === 0) xa -= ext0 * sx; if (sg.i === md.segs.length - 1) xb += ext1 * sx;
-    const yb = yTop + Hh(hmax);
-    s += `<rect x="${xa}" y="${yb - Hh(sg.h)}" width="${xb - xa}" height="${Hh(sg.h)}" fill="${WOOD}" stroke="${WOODE}" stroke-width="1.2"/>`;
-    for (let k = 1; k < 4; k++) s += `<line x1="${xa + 2}" y1="${yb - Hh(sg.h) * k / 4}" x2="${xb - 2}" y2="${yb - Hh(sg.h) * k / 4 + (k % 2 ? 1.5 : -1.5)}" stroke="${WOODG}" stroke-width="0.6" opacity="0.7"/>`;
-  });
-  const yb = yTop + Hh(hmax);
-  // podpory: podkładki o długości t, podcięcia
-  md.sups.forEach(p => {
-    const xx = X(p.x), tw = p.t / 1000 * sx;
-    s += `<rect x="${xx - tw / 2}" y="${yb}" width="${Math.max(tw, 2)}" height="12" fill="#cfd4db" stroke="#39414f" stroke-width="0.9"/>`;
-    for (let k = xx - tw / 2; k < xx + tw / 2 - 1; k += 5) s += `<line x1="${k}" y1="${yb + 12}" x2="${k + 4}" y2="${yb + 17}" stroke="#39414f" stroke-width="0.6"/>`;
-    s += tx(xx, yb + 30, esc(p.label), { fs: 11, w: 650, c: '#3d4656' });
-    if (p.notch && p.notch.on) {
-      const sg = p.segR || p.segL, h = sg.h, hef = p.notch.hef > 0 ? Math.min(p.notch.hef, h) : h, dh = Hh(h - hef), dir = p.segR ? 1 : -1;
-      const xe = p.segR ? X(p.x) - (p.i === 0 ? ext0 * sx : 0) : X(p.x) + (p.i === md.sups.length - 1 ? ext1 * sx : 0);
-      const xc = xx + dir * (p.notch.x > 0 ? p.notch.x / 1000 * sx : tw / 2);
-      if (p.notch.side === 'top') s += `<rect x="${Math.min(xe, xc)}" y="${yb - Hh(h)}" width="${Math.abs(xc - xe)}" height="${dh}" fill="#ffffff" stroke="#c0262d" stroke-width="1"/>`;
-      else s += `<rect x="${Math.min(xe, xc)}" y="${yb - dh}" width="${Math.abs(xc - xe)}" height="${dh}" fill="#ffffff" stroke="#c0262d" stroke-width="1"/>`;
-    }
-  });
-  // stężenia krawędzi górnej
-  if (S.ltb.on && S.ltb.top > 0) md.segs.forEach(sg => { for (let x = sg.x0 + S.ltb.top; x < sg.x1 - 1e-6; x += S.ltb.top) s += `<path d="M${X(x) - 4},${yTop - 12} l4,8 l4,-8" fill="none" stroke="#1d7f3c" stroke-width="1.2"/>`; });
-  if (S.ltb.on && S.ltb.top === 0) s += `<line x1="${X(0)}" y1="${yTop - 6}" x2="${X(md.Ltot)}" y2="${yTop - 6}" stroke="#1d7f3c" stroke-width="2" stroke-dasharray="2 2"/>` + tx(X(md.Ltot / 2), yTop - 10, 'krawędź górna stężona w sposób ciągły', { fs: 9.5, c: '#1d7f3c' });
-  // przeguby
-  S.nodes.forEach(n => { const sg = md.segs[n.seg]; if (!sg || !n.hinge) return; const xx = X(sg.x0 + n.a); s += `<line x1="${xx}" y1="${yb - Hh(sg.h)}" x2="${xx}" y2="${yb}" stroke="#c0262d" stroke-width="1.2" stroke-dasharray="3 2"/><circle cx="${xx}" cy="${yb - Hh(sg.h) / 2}" r="3.5" fill="#ffffff" stroke="#c0262d"/>`; });
-  // wymiary
-  let y = yb + 50;
-  md.segs.forEach(sg => { s += dimH(X(sg.x0), X(sg.x1), y, fmt(sg.L * 1000, 0)); });
-  y += 28;
-  s += dimH(X(-ext0), X(md.Ltot + ext1), y, `długość elementu ${fmt(Lm * 1000, 0)} mm`);
-  s += dimV(ml - 18, yb - Hh(md.segs[0].h), yb, fmt(md.segs[0].h, 0));
-  if (S.geom.beta) s += tx(W - mr, 14, `oś belki nachylona β = ${fmt(S.geom.beta, 1)}° (rysunek w rozwinięciu)`, { a: 'end', fs: 10, c: '#5b6576' });
-  s += tx(ml, 14, 'Widok belki (skala pionowa powiększona dla czytelności)', { a: 'start', fs: 10, c: '#5b6576' });
-  return s + '</svg>';
-}
 function supTableHTML() {
   let h = `<table class="reqt"><tr><th>Podpora</th><th>rodzaj</th><th>t [mm]</th><th>l<sub>ef</sub> [mm]</th><th>k<sub>c,90</sub></th><th>F<sub>c,90,d</sub> [kN]</th><th>σ<sub>c,90,d</sub> [MPa]</th><th>k<sub>c,90</sub>·f<sub>c,90,d</sub></th><th>η</th><th>podcięcie</th></tr>`;
   R.supData.forEach(sd => {
@@ -4073,17 +4099,6 @@ function scheduleHTML() {
   h += `<p class="hint">Masa z gęstości średniej ρ<sub>mean</sub> = ${fmt(mt.m.rhom, 0)} kg/m³ (bez naddatków na obróbkę i odpad). Długość elementu obejmuje oparcia na podporach skrajnych (t/2 + wysunięcie a).</p>`;
   return h;
 }
-function renderElevation(el) {
-  const W = Math.max(640, Math.min(1400, (el.clientWidth || 1000) - 30));
-  let h = `<div class="etools"><span class="h2" style="margin:0">Belka – widok, podpory i zestawienie materiału</span><span class="sp"></span><button class="btn" id="bDxf">Rysunek DXF…</button></div>`;
-  h += `<div class="box elevbox">${elevationSVG(W)}</div>`;
-  h += `<div class="box" style="margin-top:12px"><h4>Podpory – docisk (6.1.5) i podcięcia (6.5.2)</h4>${supTableHTML()}<p class="hint">Kliknij podporę na schemacie w zakładce Dane, aby zmienić długość oparcia, rodzaj podparcia lub podcięcie.</p></div>`;
-  if (R.ptBear && R.ptBear.length) h += `<div class="box" style="margin-top:12px"><h4>Docisk pod siłami skupionymi</h4><table class="reqt"><tr><th>Siła</th><th>x [m]</th><th>F<sub>d</sub> [kN]</th><th>l<sub>ef</sub> [mm]</th><th>σ<sub>c,90,d</sub></th><th>k<sub>c,90</sub>·f<sub>c,90,d</sub></th></tr>${R.ptBear.map(q => `<tr><td>${esc(q.o.key)}</td><td>${fmt(q.q.x, 2)}</td><td>${fmt(q.F, 2)}</td><td>${fmt(q.lef, 0)}</td><td>${fmt(q.s, 2)}</td><td>${fmt(q.kc * q.fd, 2)}</td></tr>`).join('')}</table></div>`;
-  h += `<div class="box" style="margin-top:12px"><h4>Zestawienie drewna</h4>${scheduleHTML()}</div>`;
-  el.innerHTML = h;
-  $('#bDxf', el).onclick = exportDXF;
-}
-
 /* ------------------------------------------------------------ podsumowanie */
 const CHECK_DP = { kNm: 2, kN: 2, mm: 1, MPa: 2, '': 3, Hz: 2, 'mm/kN': 2 };
 function ckVal(c, v) { const dp = typeof c.fmt === 'number' ? c.fmt : (CHECK_DP[c.unit] ?? 2); return fmt(v, dp); }
@@ -4121,21 +4136,21 @@ function renderSummary(el) {
   if (nF) html += `<div class="failnav">Niespełnione warunki: ${c.map((x, i) => x.status === 'fail' ? `<button class="goto" data-goto="${i}">${sym(x.name)}</button>` : '').join('')}</div>`;
   const ticks = S.meta.ticks || {};
   const nT = c.filter(x => ticks[x.id]).length;
-  html += `<div class="tickbar"><span id="tickCnt">Odhaczono: <b>${nT}</b> z ${c.length}</span><button class="btn sm" id="tickOk">Odhacz spełnione</button><button class="btn sm" id="tickClr">Wyczyść znaczniki</button><span class="hint">Raport obejmuje sprawdzenia odhaczone. Kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń.</span></div>`;
+  html += `<div class="tickbar"><span id="tickCnt">Odhaczono: <b>${nT}</b> z ${c.length}</span><button class="btn sm" id="tickOk" title="Przywróć automatyczne odhaczanie: spełnione – zaznaczone, niespełnione – odznaczone">Odhacz automatycznie</button><button class="btn sm" id="tickClr">Wyczyść znaczniki</button><span class="hint">Spełnione warunki są odhaczane automatycznie, niespełnione – odznaczane (także po każdej zmianie danych). Raport obejmuje sprawdzenia odhaczone. Kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń.</span></div>`;
   html += `<div class="tscroll"><table class="ctab"><thead><tr><th class="tk" title="Sprawdzone">✓</th><th>Sprawdzenie</th><th>PN-EN 1995</th><th style="text-align:right">Warunek</th><th>Wykorzystanie</th><th>Status</th><th class="nt">Kombinacja / uwagi</th></tr></thead><tbody>`;
   let grp = '';
   c.forEach((x, i) => {
     if (x.grp !== grp) { grp = x.grp; html += `<tr class="g"><td colspan="7">${esc(grp)}</td></tr>`; }
     const on = !!ticks[x.id];
-    html += `<tr class="${on ? 'done' : ''}" data-ci="${i}"><td class="tk"><input type="checkbox" data-tick="${i}" ${on ? 'checked' : ''} aria-label="sprawdzone"></td><td>${sym(x.name)}</td><td class="ref">${x.ref ? `<button class="nlink" data-nref="${esc(x.ref)}" data-grp="${esc(x.grp)}">${esc(x.ref)}</button>` : ''}</td><td class="val">${ckCond(x)}</td><td class="bar" style="white-space:nowrap">${utilBar(x)}</td><td class="stc"><span class="st ${x.status}">${STL[x.status]}</span></td><td class="nt">${esc(x.combo || '')}${x.note ? (x.combo ? '; ' : '') + esc(x.note) : ''}${x.d ? ` <button class="lnk" data-exp="${i}">▸ Objaśnienie</button>` : ''}</td></tr>`;
+    html += `<tr class="${on ? 'done' : ''}" data-ci="${i}"><td class="tk"><input type="checkbox" data-tick="${i}" ${on ? 'checked' : ''} aria-label="sprawdzone"></td><td>${sym(x.name)}</td><td class="ref">${x.ref ? `<button class="nlink" data-nref="${esc(x.ref)}" data-grp="${esc(x.grp)}">${esc(x.ref)}</button>` : ''}</td><td class="val">${ckCond(x)}</td><td class="bar" style="white-space:nowrap">${utilBar(x)}</td><td class="stc"><span class="st ${x.status}">${STL[x.status]}</span>${x.status === 'fail' || x.status === 'warn' ? `<button class="goto" data-goto="${i}" title="Przejdź do miejsca, którego dotyczy warunek">pokaż →</button>` : ''}</td><td class="nt">${esc(x.combo || '')}${x.note ? (x.combo ? '; ' : '') + esc(x.note) : ''}${x.d ? ` <button class="lnk" data-exp="${i}">▸ Objaśnienie</button>` : ''}</td></tr>`;
   });
   html += `</tbody></table></div>`;
   el.innerHTML = html;
   const upd = () => { const n = c.filter(x => (S.meta.ticks || {})[x.id]).length; $('#tickCnt', el).innerHTML = `Odhaczono: <b>${n}</b> z ${c.length}`; };
-  const setTick = (x, v) => { S.meta.ticks = S.meta.ticks || {}; if (v) S.meta.ticks[x.id] = true; else delete S.meta.ticks[x.id]; };
+  const setTick = (x, v) => { S.meta.tickMan = S.meta.tickMan || {}; S.meta.tickMan[x.id] = v; syncTicks(); };
   $$('[data-tick]', el).forEach(cb => cb.addEventListener('change', () => { const x = c[+cb.dataset.tick]; setTick(x, cb.checked); cb.closest('tr').classList.toggle('done', cb.checked); upd(); dirty = true; updateTitle(); autosave(); rendered.report = false; }));
-  $('#tickOk', el).onclick = () => { c.forEach(x => { if (x.status === 'ok' || x.status === 'info') setTick(x, true); }); dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
-  $('#tickClr', el).onclick = () => { S.meta.ticks = {}; dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
+  $('#tickOk', el).onclick = () => { S.meta.tickMan = {}; syncTicks(); dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
+  $('#tickClr', el).onclick = () => { S.meta.tickMan = {}; c.forEach(x => { S.meta.tickMan[x.id] = false; }); syncTicks(); dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
   $$('[data-exp]', el).forEach(b => b.addEventListener('click', () => explainPopup(c[+b.dataset.exp])));
   $$('tr[data-ci] td.val, tr[data-ci] td.bar', el).forEach(td => { const x = c[+td.closest('tr').dataset.ci]; if (!x.d) return; td.classList.add('xclick'); td.title = 'Kliknij – jak obliczono'; td.addEventListener('click', () => explainPopup(x)); });
   $$('[data-cki]', el).forEach(cd => { cd.classList.add('xclick'); cd.addEventListener('click', () => explainPopup(c[+cd.dataset.cki])); });
@@ -4143,7 +4158,9 @@ function renderSummary(el) {
 }
 // przejście do miejsca, którego dotyczy warunek (pole formularza / podpora)
 function gotoCheck(c) {
+  if (c.col !== undefined) { U.selectTab('data'); setTimeout(() => colPopup(c.col), 60); return; }
   if (c.sup !== undefined && /^(bear|notch|upl)/.test(c.id)) { U.selectTab('data'); setTimeout(() => supportPopup(c.sup), 60); return; }
+  if (/^(bend|shear|tor|comp|tens|fi)/.test(c.id) && c.seg !== undefined) { U.selectTab('data'); setTimeout(() => secWinPopup([c.seg]), 60); return; }
   const fld = /^w/.test(c.id) ? 'sls.lim' : /^ltb/.test(c.id) ? 'ltb.top' : /^vib/.test(c.id) ? 'sls.vib.s' : /^fi/.test(c.id) ? 'fire.R' : 'geom.h';
   U.selectTab('data');
   setTimeout(() => {
@@ -4170,6 +4187,229 @@ function normPopup(ref, grp) {
 }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-nref]'); if (b) { e.preventDefault(); normPopup(b.dataset.nref, b.dataset.grp || ''); } });
 $('#nmodal') && $('#nmodal').addEventListener('mousedown', e => { if (e.target.id === 'nmodal') e.currentTarget.style.display = 'none'; });
+
+/* ---- 04b_elev.js ---- */
+/* ----------------------------------------------- zakładka Belka i podpory: widok 2D / 3D, przekroje */
+let view3d = false;
+const V3 = { yaw: -0.55, pitch: 0.38, k: 1, px: 0, py: 0, mode: 'rot' };
+const colOf = k => { const c = S.supCfg[k] && S.supCfg[k].col; return c && c.on ? E.normCol(c) : null; };
+// widok podłużny belki (skala pionowa powiększona): zarys, oparcia, podcięcia, stężenia, przeguby, słupy ze stopami
+function elevationSVG(W, o) {
+  o = o || {};
+  const md = R.md, ext0 = md.extL, ext1 = md.extR, Lm = md.Lmember;
+  const ml = 46, mr = 40, sx = (W - ml - mr) / Lm;
+  const hmax = Math.max(...md.segs.map(s => s.h));
+  const vs = Math.min(Math.max(sx, 70 / hmax * 1000), 160 / hmax * 1000);
+  const X = x => ml + (x + ext0) * sx, Hh = h => h / 1000 * vs;
+  const anyCol = md.sups.some(p => colOf(p.i));
+  const yTop = 40, yb = yTop + Hh(hmax), colH = anyCol ? 120 : 0, H = yb + 24 + colH + 96;
+  let s = svgOpen(W, H, `class="elev" data-ml="${ml}" data-sx="${sx}" data-ext="${ext0}" data-top="${yTop}" data-bh="${Hh(hmax)}"`);
+  md.segs.forEach(sg => {
+    let xa = X(sg.x0), xb = X(sg.x1);
+    if (sg.i === 0) xa -= ext0 * sx; if (sg.i === md.segs.length - 1) xb += ext1 * sx;
+    s += `<rect x="${xa}" y="${yb - Hh(sg.h)}" width="${xb - xa}" height="${Hh(sg.h)}" fill="${WOOD}" stroke="${WOODE}" stroke-width="1.2"/>`;
+    for (let k = 1; k < 4; k++) s += `<line x1="${xa + 2}" y1="${yb - Hh(sg.h) * k / 4}" x2="${xb - 2}" y2="${yb - Hh(sg.h) * k / 4 + (k % 2 ? 1.5 : -1.5)}" stroke="${WOODG}" stroke-width="0.6" opacity="0.7"/>`;
+  });
+  md.sups.forEach(p => {
+    const xx = X(p.x), tw = p.t / 1000 * sx, c = colOf(p.i);
+    s += `<g class="supp" data-sup="${p.i}"><title>Podpora ${esc(p.label)} – kliknij, aby zmienić</title>`;
+    if (c) {
+      const cw = Math.max(8, c.h / 1000 * sx), y1 = yb, y2 = yb + colH;
+      s += `<rect x="${xx - cw / 2}" y="${y1}" width="${cw}" height="${colH}" fill="${WOOD}" stroke="${WOODE}" stroke-width="1.1"/>`;
+      s += `<path d="M${xx - cw / 2 - 3},${y1 + colH * 0.45} l${cw / 3},-5 l${cw / 3},10 l${cw / 3 + 6},-5" fill="none" stroke="${WOODE}"/>`;
+      s += `<rect x="${xx - cw / 2 - 6}" y="${y2}" width="${cw + 12}" height="4" fill="#9aa3b0" stroke="#39414f" stroke-width="0.8"/><rect x="${xx - cw / 2 - 16}" y="${y2 + 4}" width="${cw + 32}" height="22" fill="#cfd4db" stroke="#5d6778" stroke-width="0.8"/>`;
+      s += tx(xx + cw / 2 + 6, y1 + 18, `słup ${fmt(c.b, 0)}×${fmt(c.h, 0)}`, { a: 'start', fs: 9.5, c: '#4a5466' }) + tx(xx + cw / 2 + 6, y1 + 30, `H = ${fmt(c.L, 2)} m`, { a: 'start', fs: 9.5, c: '#4a5466' }) + tx(xx + cw / 2 + 6, y1 + 42, `${c.n * c.m}×⌀${c.d}`, { a: 'start', fs: 9.5, c: '#4a5466' });
+    } else {
+      s += `<rect x="${xx - tw / 2}" y="${yb}" width="${Math.max(tw, 2)}" height="12" fill="#cfd4db" stroke="#39414f" stroke-width="0.9"/>`;
+      for (let k = xx - tw / 2; k < xx + tw / 2 - 1; k += 5) s += `<line x1="${k}" y1="${yb + 12}" x2="${k + 4}" y2="${yb + 17}" stroke="#39414f" stroke-width="0.6"/>`;
+    }
+    s += tx(xx, yb + (c ? colH + 40 : 30), esc(p.label), { fs: 11, w: 650, c: '#3d4656' }) + '</g>';
+    if (p.notch && p.notch.on) {
+      const sg = p.segR || p.segL, h = sg.h, hef = p.notch.hef > 0 ? Math.min(p.notch.hef, h) : h, dh = Hh(h - hef), dir = p.segR ? 1 : -1;
+      const xe = p.segR ? X(p.x) - (p.i === 0 ? ext0 * sx : 0) : X(p.x) + (p.i === md.sups.length - 1 ? ext1 * sx : 0);
+      const xc = xx + dir * (p.notch.x > 0 ? p.notch.x / 1000 * sx : tw / 2);
+      s += `<rect x="${Math.min(xe, xc)}" y="${p.notch.side === 'top' ? yb - Hh(h) : yb - dh}" width="${Math.abs(xc - xe)}" height="${dh}" fill="var(--panel, #ffffff)" stroke="#c0262d" stroke-width="1"/>`;
+    }
+  });
+  if (S.ltb.on && S.ltb.top > 0) md.segs.forEach(sg => { for (let x = sg.x0 + S.ltb.top; x < sg.x1 - 1e-6; x += S.ltb.top) s += `<path d="M${X(x) - 4},${yTop - 12} l4,8 l4,-8" fill="none" stroke="#1d7f3c" stroke-width="1.2"/>`; });
+  if (S.ltb.on && S.ltb.top === 0) s += `<line x1="${X(0)}" y1="${yTop - 6}" x2="${X(md.Ltot)}" y2="${yTop - 6}" stroke="#1d7f3c" stroke-width="2" stroke-dasharray="2 2"/>` + tx(X(md.Ltot / 2), yTop - 10, 'krawędź górna stężona w sposób ciągły', { fs: 9.5, c: '#1d7f3c' });
+  S.nodes.forEach(n => { const sg = md.segs[n.seg]; if (!sg || !n.hinge) return; const xx = X(sg.x0 + n.a); s += `<line x1="${xx}" y1="${yb - Hh(sg.h)}" x2="${xx}" y2="${yb}" stroke="#c0262d" stroke-width="1.2" stroke-dasharray="3 2"/><circle cx="${xx}" cy="${yb - Hh(sg.h) / 2}" r="3.5" fill="#ffffff" stroke="#c0262d"/>`; });
+  let y = yb + colH + 58;
+  md.segs.forEach(sg => { s += dimH(X(sg.x0), X(sg.x1), y, fmt(sg.L * 1000, 0)); });
+  y += 28;
+  s += dimH(X(-ext0), X(md.Ltot + ext1), y, `długość elementu ${fmt(Lm * 1000, 0)} mm`);
+  s += dimV(ml - 18, yb - Hh(md.segs[0].h), yb, fmt(md.segs[0].h, 0));
+  if (S.geom.beta) s += tx(W - mr, 14, `oś belki nachylona β = ${fmt(S.geom.beta, 1)}° (rysunek w rozwinięciu)`, { a: 'end', fs: 10, c: '#5b6576' });
+  s += tx(ml, 14, 'Widok podłużny (skala pionowa powiększona) – przesuń kursor: przekrój obok; kliknij: okno przekroju', { a: 'start', fs: 10, c: '#5b6576' });
+  return s + '</svg>';
+}
+// wartości w miejscu x: indeks stacji w odcinku zawierającym x
+function stIdxAt(x) {
+  const st = R.st; let best = 0, bd = Infinity;
+  for (let i = 0; i < st.stX.length; i++) { const d = Math.abs(st.stX[i] - x); if (d < bd - 1e-12) { bd = d; best = i; } }
+  return best;
+}
+function atX(x) {
+  const st = R.st, md = R.md, i = stIdxAt(x), sg = E.segAt(md, x), sec = sg.sec, sd = R.segData[sg.i];
+  const pick = (env, k) => { let mx = -Infinity, mn = Infinity; for (let j = Math.max(0, i - 1); j <= Math.min(st.stX.length - 1, i + 1); j++) { if (Math.abs(st.stX[j] - st.stX[i]) > 1e-9) continue; mx = Math.max(mx, env[k].mx[j]); mn = Math.min(mn, env[k].mn[j]); } return { mx, mn }; };
+  const M = pick(R.env.uls, 'My'), V = pick(R.env.uls, 'Vy'), N = pick(R.env.uls, 'N');
+  const Mabs = Math.max(Math.abs(M.mx), Math.abs(M.mn)), Vabs = Math.max(Math.abs(V.mx), Math.abs(V.mn));
+  const sig = Mabs * 1e6 / sec.Wy, tau = 1.5 * Vabs * 1e3 / (R.mt.kcr * sec.b * sec.h);
+  return { x, i, sg, sec, sd, M, V, N, Mabs, Vabs, sig, tau, eb: R.eta.bend[i], es: R.eta.shear[i], et: R.eta.stab[i], w: Math.max(Math.abs(R.defl.finMx[i]), Math.abs(R.defl.finMn[i])) * 1000 };
+}
+function hoverSecHTML(x) {
+  let q; try { q = atX(x); } catch (e) { return ''; }
+  const near = R.md.sups.find(p => Math.abs(p.x - x) < (p.t / 2 + 150) / 1000);
+  return `<h4>Przekrój pod kursorem<small> · x = ${fmt(x, 2)} m · ${esc(q.sg.label)}</small></h4>
+    <div class="xclick secedit" data-geo="${q.sg.i}" title="Kliknij, aby zmienić wymiary i materiał">${sectionSVG(q.sec, { id: 'h', size: 170, glulam: /^GL/.test(curFam()) })}</div>
+    <table class="kv"><tr><td>b × h</td><td>${S.geom.n > 1 ? S.geom.n + '×' : ''}${fmt(q.sec.b1, 0)} × ${fmt(q.sec.h, 0)}</td><td>mm</td></tr>
+    <tr><td>M<sub>Ed</sub> max / min</td><td>${fmt(q.M.mx, 2)} / ${fmt(q.M.mn, 2)}</td><td>kNm</td></tr>
+    <tr><td>|V<sub>Ed</sub>|</td><td>${fmt(q.Vabs, 2)}</td><td>kN</td></tr>
+    ${Math.abs(q.N.mx) + Math.abs(q.N.mn) > 1e-6 ? `<tr><td>N<sub>Ed</sub></td><td>${fmt(q.N.mx, 2)} / ${fmt(q.N.mn, 2)}</td><td>kN</td></tr>` : ''}
+    <tr><td>σ<sub>m,d</sub> / τ<sub>d</sub></td><td>${fmt(q.sig, 2)} / ${fmt(q.tau, 3)}</td><td>MPa</td></tr>
+    <tr><td>η zginanie / stateczność</td><td>${fmt(q.eb * 100, 0)}% / ${fmt(q.et * 100, 0)}%</td><td></td></tr>
+    <tr><td>η ścinanie</td><td>${fmt(q.es * 100, 0)}%</td><td></td></tr>
+    <tr><td>w<sub>fin</sub></td><td>${fmt(q.w, 1)}</td><td>mm</td></tr></table>
+    <div class="secedbar"><button class="btn sm" data-geo="${q.sg.i}">Wymiary b × h…</button>${near ? `<button class="btn sm" data-sup2="${near.i}">Podpora ${esc(near.label)}…</button>` : ''}<button class="btn sm" data-secx="${x}">Okno przekroju…</button></div>`;
+}
+function sectionPopup(x) {
+  const L = R.md.Ltot; x = Math.max(0, Math.min(L, x));
+  const q = atX(x), m = $('#modal');
+  m.innerHTML = `<div class="dlg secpop xres"><h3>Przekrój poprzeczny – x = ${fmt(x, 2)} m (${esc(q.sg.label)})</h3>
+    <div class="secnav"><button class="btn sm" data-dx="-0.5">◀ 0,5 m</button><button class="btn sm" data-dx="-0.1">◀ 0,1 m</button><label>x = <input class="txt sm" id="spX" value="${fmt(x, 2)}"> m</label><button class="btn sm" data-dx="0.1">0,1 m ▶</button><button class="btn sm" data-dx="0.5">0,5 m ▶</button></div>
+    <div class="flex" style="justify-content:center;gap:10px"><div class="xclick secedit" data-geo="${q.sg.i}" title="Kliknij, aby zmienić wymiary">${sectionSVG(q.sec, { id: 'p', size: 220, glulam: /^GL/.test(curFam()) })}</div>${stressSVG(q.sec, q.sig, q.tau)}</div>
+    <div class="secedbar"><span>Zmień w tym miejscu:</span><button class="btn sm" data-geo="${q.sg.i}">Wymiary b × h, materiał</button><button class="btn sm" data-node2="${q.sg.i}">Węzeł / przegub</button><button class="btn sm" data-ld2="${q.sg.i}">Obciążenia odcinka</button></div>
+    <table class="kv"><tr><td>M<sub>Ed</sub> max / min (obwiednia SGN)</td><td>${fmt(q.M.mx, 2)} / ${fmt(q.M.mn, 2)}</td><td>kNm</td></tr>
+    <tr><td>|V<sub>Ed</sub>|</td><td>${fmt(q.Vabs, 2)}</td><td>kN</td></tr>
+    <tr><td>σ<sub>m,d</sub> = |M|/W<sub>y</sub></td><td>${fmt(q.sig, 2)}</td><td>MPa</td></tr>
+    <tr><td>τ<sub>d</sub> = 1,5V/(k<sub>cr</sub>bh)</td><td>${fmt(q.tau, 3)}</td><td>MPa</td></tr>
+    <tr><td>wytężenie: zginanie / stateczność / ścinanie</td><td>${fmt(q.eb * 100, 0)}% / ${fmt(q.et * 100, 0)}% / ${fmt(q.es * 100, 0)}%</td><td></td></tr>
+    <tr><td>ugięcie końcowe w<sub>fin</sub></td><td>${fmt(q.w, 1)}</td><td>mm</td></tr></table>
+    <p class="hint">Wytężenie w tym miejscu – maksimum z kombinacji SGN (z k<sub>mod</sub> każdej kombinacji); zwichrzenie z k<sub>crit</sub> odcinka.</p>
+    <div class="dbtn"><button class="btn pri" data-close>Zamknij</button></div></div>`;
+  m.style.display = 'flex';
+  $('[data-close]', m).onclick = () => { m.style.display = 'none'; };
+  $$('[data-dx]', m).forEach(b => b.onclick = () => sectionPopup(x + +b.dataset.dx));
+  const inp = $('#spX', m); inp.addEventListener('change', () => { const v = parseNum(inp.value); if (v !== null) sectionPopup(v); }); inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.dispatchEvent(new Event('change')); });
+  $$('[data-geo]', m).forEach(b => b.addEventListener('click', () => geoPopup(+b.dataset.geo, () => sectionPopup(x))));
+  $$('[data-node2]', m).forEach(b => b.addEventListener('click', () => nodeWinPopup(+b.dataset.node2)));
+  $$('[data-ld2]', m).forEach(b => b.addEventListener('click', () => loadPopup({ seg: +b.dataset.ld2 })));
+}
+function bindElev(el) {
+  const svg = $('svg.elev', el); if (!svg) return;
+  const ml = +svg.dataset.ml, sx = +svg.dataset.sx, ext = +svg.dataset.ext, top = +svg.dataset.top, bh = +svg.dataset.bh;
+  const ns = 'http://www.w3.org/2000/svg', cur = document.createElementNS(ns, 'line');
+  cur.setAttribute('y1', top - 6); cur.setAttribute('y2', top + bh + 6); cur.setAttribute('stroke-width', '1.4'); cur.setAttribute('stroke-dasharray', '4 3');
+  cur.style.stroke = 'var(--acc)'; cur.style.display = 'none'; cur.style.pointerEvents = 'none'; svg.appendChild(cur); svg.style.cursor = 'crosshair';
+  const xOf = ev => { const r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal; const px = vb.x + (ev.clientX - r.left) * vb.width / r.width, py = vb.y + (ev.clientY - r.top) * vb.height / r.height; return { x: (px - ml) / sx - ext, px, py }; };
+  const inside = q => q.py >= top - 30 && q.py <= top + bh + 30 && q.x >= 0 && q.x <= R.md.Ltot;
+  const hs = $('#hsec', el); let pend = null, lastX = null;
+  const showSec = x => { if (!hs || x === lastX) return; lastX = x; hs.innerHTML = hoverSecHTML(x); bindHs(); };
+  const bindHs = () => { $$('[data-geo]', hs).forEach(b => b.addEventListener('click', () => geoPopup(+b.dataset.geo))); $$('[data-sup2]', hs).forEach(b => b.addEventListener('click', () => supportPopup(+b.dataset.sup2))); $$('[data-secx]', hs).forEach(b => b.addEventListener('click', () => sectionPopup(+b.dataset.secx))); };
+  const gov = R.checks.find(c => /^bend/.test(c.id) && c.d) ; showSec(gov ? Math.round(gov.d.x * 100) / 100 : R.md.Ltot / 2);
+  svg.addEventListener('mousemove', ev => { const q = xOf(ev); if (inside(q)) { cur.setAttribute('x1', q.px); cur.setAttribute('x2', q.px); cur.style.display = ''; const xx = Math.round(Math.max(0, Math.min(R.md.Ltot, q.x)) * 100) / 100; if (!pend) pend = requestAnimationFrame(() => { pend = null; showSec(xx); }); } else cur.style.display = 'none'; });
+  svg.addEventListener('mouseleave', () => { cur.style.display = 'none'; });
+  svg.addEventListener('click', ev => { if (ev.target.closest('.supp')) return; const q = xOf(ev); if (inside(q)) sectionPopup(Math.round(q.x * 100) / 100); });
+  $$('.supp', svg).forEach(g => g.addEventListener('click', ev => { ev.stopPropagation(); supportPopup(+g.dataset.sup); }));
+}
+// widok 3D (canvas): belka, oparcia, podcięcia, słupy, stopy i fundamenty; obrót / przesuw / powiększenie
+function draw3D(cv) {
+  const md = R.md, ctx = cv.getContext('2d'), W = cv.width, H = cv.height, dpr = window.devicePixelRatio || 1;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px'; cv.width = W * dpr; cv.height = H * dpr;
+  const dark = document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  const polys = [], lines = [];
+  // geometria [mm]: x – wzdłuż belki, y – w górę, z – w poprzek; górna krawędź belki y = hMax
+  const hMax = Math.max(...md.segs.map(s => s.h));
+  const box = (x0, x1, y0, y1, z0, z1, kind) => {
+    const c = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
+    [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [3, 2, 6, 7], [0, 3, 7, 4], [1, 2, 6, 5]].forEach(f => polys.push({ f: f.map(i => c[i]), kind }));
+  };
+  const xOff = md.extL * 1000;
+  md.segs.forEach((sg, i) => {
+    let x0 = sg.x0 * 1000 + xOff, x1 = sg.x1 * 1000 + xOff; if (i === 0) x0 -= xOff; if (i === md.segs.length - 1) x1 += md.extR * 1000;
+    const bw = sg.sec.b / 2;
+    box(x0, x1, hMax - sg.h, hMax, -bw, bw, 'wood');
+    if (S.geom.n > 1) for (let k = 1; k < S.geom.n; k++) { const z = -bw + 2 * bw * k / S.geom.n; lines.push([[x0, hMax - sg.h, z], [x0, hMax, z], '#8a5a2b', 1]); lines.push([[x1, hMax - sg.h, z], [x1, hMax, z], '#8a5a2b', 1]); }
+  });
+  let yMin = 0;
+  md.sups.forEach(p => {
+    const xx = p.x * 1000 + xOff, t = Math.max(60, p.t), seg = p.segR || p.segL, yb = hMax - seg.h, bw = seg.sec.b / 2 + 30, c = colOf(p.i);
+    if (p.notch && p.notch.on) { const hef = p.notch.hef > 0 ? Math.min(p.notch.hef, seg.h) : seg.h, dir = p.segR ? 1 : -1, xc = xx + dir * (p.notch.x > 0 ? p.notch.x : t / 2), y0 = p.notch.side === 'top' ? hMax - (seg.h - hef) : yb, y1 = p.notch.side === 'top' ? hMax : yb + (seg.h - hef); [[xc, y0, -bw + 30], [xc, y1, -bw + 30], [xc, y1, bw - 30], [xc, y0, bw - 30]].forEach((q, j, a) => lines.push([q, a[(j + 1) % 4], '#c0262d', 1.6])); }
+    if (c) {
+      const L = c.L * 1000, cb = c.b / 2, ch = c.h / 2;
+      box(xx - ch, xx + ch, yb - L, yb, -cb, cb, 'wood');
+      box(xx - c.pa / 2, xx + c.pa / 2, yb - L - c.gap - 15, yb - L - c.gap, -c.pb / 2, c.pb / 2, 'steel');
+      if (c.type === 'slot') box(xx - ch + 10, xx + ch - 10, yb - L - c.gap, yb - L + c.a3 + (c.n - 1) * c.a1 + c.e1p, -c.ts / 2, c.ts / 2, 'steel');
+      else [-1, 1].forEach(sd => box(xx - ch + 10, xx + ch - 10, yb - L - c.gap, yb - L + c.a3 + (c.n - 1) * c.a1 + c.e1p, sd * cb, sd * (cb + c.ts), 'steel'));
+      box(xx - c.pa / 2 - 150, xx + c.pa / 2 + 150, yb - L - c.gap - 15 - 400, yb - L - c.gap - 15, -c.pb / 2 - 150, c.pb / 2 + 150, 'conc');
+      const xs = c.m === 1 ? [0] : Array.from({ length: c.m }, (_, j) => -(c.m - 1) * c.a2 / 2 + j * c.a2);
+      for (let i = 0; i < c.n; i++) xs.forEach(dx => { const y = yb - L + c.a3 + i * c.a1; lines.push([[xx + dx, y, -cb - 15], [xx + dx, y, cb + 15], dark ? '#e6e9ef' : '#1b2230', 2.2]); });
+      yMin = Math.min(yMin, yb - L - 450);
+    } else {
+      box(xx - t / 2, xx + t / 2, yb - 200, yb, -bw, bw, 'sup'); yMin = Math.min(yMin, yb - 200);
+    }
+  });
+  if (S.ltb.on && S.ltb.top > 0) md.segs.forEach(sg => { for (let x = sg.x0 + S.ltb.top; x < sg.x1 - 1e-6; x += S.ltb.top) { const xx = x * 1000 + xOff; lines.push([[xx, hMax + 5, -sg.sec.b / 2 - 250], [xx, hMax + 5, sg.sec.b / 2 + 250], '#1d7f3c', 2]); } });
+  const xL = 0, xR = md.Lmember * 1000, xc = (xL + xR) / 2, yc = (hMax + yMin) / 2;
+  const spanY = hMax - yMin, base = Math.min((W - 60) / Math.max(1500, xR - xL + 400), (H - 70) / Math.max(800, spanY * 1.25 + 300));
+  const COL = { wood: dark ? 'rgba(208,164,108,0.30)' : 'rgba(214,180,128,0.55)', steel: dark ? 'rgba(170,180,195,0.45)' : 'rgba(120,130,145,0.55)', conc: dark ? 'rgba(150,160,175,0.14)' : 'rgba(150,160,175,0.25)', sup: dark ? 'rgba(150,160,175,0.18)' : 'rgba(110,120,135,0.2)' };
+  const render = () => {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const cy = Math.cos(V3.yaw), sy = Math.sin(V3.yaw), cp = Math.cos(V3.pitch), sp = Math.sin(V3.pitch), sc0 = base * V3.k;
+    const pr = ([x, y, z]) => { const X0 = x - xc, Y0 = y - yc; const X1 = X0 * cy + z * sy, Z1 = -X0 * sy + z * cy; const Y2 = Y0 * cp - Z1 * sp, Z2 = Y0 * sp + Z1 * cp; return [W / 2 + V3.px + X1 * sc0, H / 2 + V3.py - Y2 * sc0, Z2]; };
+    const items = [];
+    polys.forEach(({ f, kind }) => { const pp = f.map(pr); items.push({ z: pp.reduce((a, q) => a + q[2], 0) / pp.length, poly: pp, kind }); });
+    lines.forEach(([a, b, c, w]) => { const A = pr(a), B = pr(b); items.push({ z: (A[2] + B[2]) / 2 + 1, line: [A, B], c, w }); });
+    items.sort((u, v) => u.z - v.z);
+    items.forEach(it => {
+      if (it.poly) { ctx.beginPath(); it.poly.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.fillStyle = COL[it.kind]; ctx.fill(); ctx.strokeStyle = it.kind === 'wood' ? (dark ? 'rgba(208,164,108,0.8)' : 'rgba(138,90,43,0.75)') : (dark ? 'rgba(200,210,225,0.4)' : 'rgba(60,70,90,0.45)'); ctx.lineWidth = 0.8; ctx.stroke(); }
+      else { ctx.beginPath(); ctx.moveTo(it.line[0][0], it.line[0][1]); ctx.lineTo(it.line[1][0], it.line[1][1]); ctx.strokeStyle = it.c; ctx.lineWidth = it.w; ctx.lineCap = 'round'; ctx.stroke(); }
+    });
+    ctx.fillStyle = dark ? '#c9d4e6' : '#1b2230'; ctx.font = '600 11px system-ui, sans-serif'; ctx.textAlign = 'center';
+    md.sups.forEach(p => { const seg = p.segR || p.segL, c = colOf(p.i), q = pr([p.x * 1000 + xOff, hMax - seg.h - (c ? c.L * 1000 + 520 : 300), 0]); ctx.fillText(p.label, q[0], q[1]); });
+    ctx.textAlign = 'start'; ctx.fillStyle = dark ? '#c9d4e6' : '#3d4656'; ctx.font = '11px system-ui, sans-serif';
+    ctx.fillText(`obrót ${Math.round(V3.yaw * 180 / Math.PI)}°, pochylenie ${Math.round(V3.pitch * 180 / Math.PI)}°, powiększenie ${Math.round(V3.k * 100)}% · tryb: ${V3.mode === 'pan' ? 'przesuw' : 'obrót'}`, 10, H - 10);
+  };
+  render();
+  const zoomAt = (f, mx, my) => { const k1 = Math.max(0.3, Math.min(30, V3.k * f)), g = k1 / V3.k; V3.px = (mx - W / 2) - (mx - W / 2 - V3.px) * g; V3.py = (my - H / 2) - (my - H / 2 - V3.py) * g; V3.k = k1; };
+  const loc = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  let drag = null;
+  cv.oncontextmenu = e => e.preventDefault();
+  cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); const pan = V3.mode === 'pan' || e.shiftKey || e.button === 1 || e.button === 2; drag = { x: e.clientX, y: e.clientY, v: Object.assign({}, V3), pan }; cv.style.cursor = pan ? 'move' : 'grabbing'; };
+  cv.onpointermove = e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (drag.pan) { V3.px = drag.v.px + dx; V3.py = drag.v.py + dy; } else { V3.yaw = drag.v.yaw + dx * 0.008; V3.pitch = Math.max(-1.45, Math.min(1.45, drag.v.pitch + dy * 0.008)); } render(); };
+  cv.onpointerup = cv.onpointercancel = () => { drag = null; cv.style.cursor = ''; };
+  cv.onwheel = e => { if (!e.ctrlKey) return; e.preventDefault(); const [mx, my] = loc(e); zoomAt(Math.exp(-e.deltaY * 0.002), mx, my); render(); };
+  cv.ondblclick = () => { Object.assign(V3, { yaw: -0.55, pitch: 0.38, k: 1, px: 0, py: 0 }); render(); };
+  const bar = cv.parentElement && cv.parentElement.querySelector('.v3tools');
+  if (bar) {
+    bar.querySelectorAll('[data-v3m]').forEach(b => b.onclick = () => { V3.mode = b.dataset.v3m; bar.querySelectorAll('[data-v3m]').forEach(q => q.classList.toggle('on', q === b)); render(); });
+    bar.querySelectorAll('[data-v3z]').forEach(b => b.onclick = () => { zoomAt(+b.dataset.v3z > 0 ? 1.25 : 0.8, W / 2, H / 2); render(); });
+    const rb = bar.querySelector('[data-v3r]'); if (rb) rb.onclick = () => cv.ondblclick();
+  }
+}
+function colTableHTML() {
+  if (!R.colData || !R.colData.length) return '';
+  return `<div class="box" style="margin-top:12px"><h4>Słupy i stopy (połączenie z fundamentem)</h4><table class="reqt"><tr><th>Podpora</th><th>słup</th><th>stopa</th><th>N<sub>c,Ed</sub> max</th><th>N<sub>t,Ed</sub> max</th><th>największe η</th><th></th></tr>${R.colData.map(o => { const c = o.c, cs = R.checks.filter(q => q.col === o.k && isFinite(q.ratio)), mx = cs.length ? Math.max(...cs.map(q => q.ratio)) : 0; return `<tr><td>${esc(o.p.label)}</td><td>${esc(o.m.id || o.m.name)} ${fmt(c.b, 0)}×${fmt(c.h, 0)}, H = ${fmt(c.L, 2)} m</td><td>${c.type === 'slot' ? 'blacha wpuszczana' : 'blachy zewn.'} t = ${fmt(c.ts, 0)}, ${c.n * c.m}×⌀${c.d} ${c.fast === 'bolt' ? 'śruby' : 'sworznie'}; ${c.na} kotwy</td><td>${fmt(o.worst.buck ? o.worst.buck.Nc : 0, 2)}</td><td>${fmt(o.worst.conn ? o.worst.conn.Nt : 0, 2)}</td><td class="${mx > 1 ? 'no' : 'yes'}">${fmt(mx * 100, 0)}%</td><td><button class="lnk" data-colw="${o.k}">zmień…</button></td></tr>`; }).join('')}</table></div>`;
+}
+function renderElevation(el) {
+  const narrow = el.clientWidth < 980;
+  const W = narrow ? Math.max(600, el.clientWidth - 40) : Math.max(600, Math.min(1400, el.clientWidth - 40 - 336));
+  let h = `<div class="etools"><div class="h2" style="margin:0">Belka i podpory<small>widok podłużny lub przestrzenny; obok – przekrój w miejscu kursora</small></div><span class="sp"></span><button class="btn pri sm" id="bDxf">Rysunek DXF…</button></div>`;
+  h += `<div class="elevgrid"><div class="box elevbox"><div class="v3sw segsw sm" role="tablist" aria-label="Widok"><button data-v3="2d" class="${view3d ? '' : 'on'}">2D</button><button data-v3="3d" class="${view3d ? 'on' : ''}" title="Widok przestrzenny – obrót, przesuw i powiększenie">3D</button></div>` +
+    (view3d ? `<div class="v3tools segsw sm" role="toolbar"><button data-v3m="rot" class="${V3.mode === 'pan' ? '' : 'on'}">⟳ Obrót</button><button data-v3m="pan" class="${V3.mode === 'pan' ? 'on' : ''}">✥ Przesuw</button><button data-v3z="1" title="Powiększ">+</button><button data-v3z="-1" title="Pomniejsz">−</button><button data-v3r="1" title="Widok domyślny">⌂</button></div><canvas class="v3d" width="${Math.round(W)}" height="${Math.round(Math.min(560, Math.max(340, W * 0.48)))}"></canvas><p class="hint" style="margin:4px 0 0">Lewy przycisk – obrót lub przesuw (wg trybu) · prawy przycisk albo Shift + przeciągnij – przesuw · Ctrl + kółko lub +/− – powiększenie · dwuklik – widok domyślny.</p>`
+      : `<div class="tscroll elevwrap">${elevationSVG(W)}</div>`) + `</div><div class="box hsec" id="hsec"></div></div>`;
+  h += colTableHTML();
+  h += `<div class="box" style="margin-top:12px"><h4>Podpory – docisk (6.1.5) i podcięcia (6.5.2)</h4>${supTableHTML()}<p class="hint">Kliknij podporę na rysunku lub na schemacie w Danych, aby zmienić długość oparcia, rodzaj podparcia, podcięcie albo słup ze stopą.</p></div>`;
+  if (R.ptBear && R.ptBear.length) h += `<div class="box" style="margin-top:12px"><h4>Docisk pod siłami skupionymi</h4><table class="reqt"><tr><th>Siła</th><th>x [m]</th><th>F<sub>d</sub> [kN]</th><th>l<sub>ef</sub> [mm]</th><th>σ<sub>c,90,d</sub></th><th>k<sub>c,90</sub>·f<sub>c,90,d</sub></th></tr>${R.ptBear.map(q => `<tr><td>${esc(q.o.key)}</td><td>${fmt(q.q.x, 2)}</td><td>${fmt(q.F, 2)}</td><td>${fmt(q.lef, 0)}</td><td>${fmt(q.s, 2)}</td><td>${fmt(q.kc * q.fd, 2)}</td></tr>`).join('')}</table></div>`;
+  h += `<div class="box" style="margin-top:12px"><h4>Zestawienie drewna</h4>${scheduleHTML()}</div>`;
+  el.innerHTML = h;
+  $('#bDxf', el).onclick = exportDXF;
+  $$('[data-v3]', el).forEach(b => b.addEventListener('click', () => { view3d = b.dataset.v3 === '3d'; rendered.elev = false; renderActive(); }));
+  $$('[data-colw]', el).forEach(b => b.addEventListener('click', () => colPopup(+b.dataset.colw)));
+  const hs = $('#hsec', el);
+  if (view3d) { draw3D($('canvas.v3d', el)); if (hs) { hs.innerHTML = hoverSecHTML(R.md.Ltot / 2); $$('[data-geo]', hs).forEach(b => b.addEventListener('click', () => geoPopup(+b.dataset.geo))); $$('[data-secx]', hs).forEach(b => b.addEventListener('click', () => sectionPopup(+b.dataset.secx))); } }
+  else { bindElev(el); zoomInit(el); }
+}
 
 /* ---- 05_app.js ---- */
 /* -------------------------------------------------------------- raport */
@@ -4602,6 +4842,39 @@ function dFire(c, R) {
   else o += eq(`l<sub>ef</sub> = ${f(d.z.lef, 0)} mm, σ<sub>m,crit,fi</sub> = ${f(d.z.sigcrit, 2)} MPa (k<sub>fi</sub>E<sub>0,05</sub>, k<sub>fi</sub>G<sub>0,05</sub>), λ<sub>rel,m</sub> = ${f(d.z.lam, 3)}, k<sub>crit</sub> = ${f(d.z.kcrit, 3)}; σ<sub>m,d,fi</sub> = ${f(d.sm, 2)} MPa → ${f(c.ratio, 3)} ${okR(c.ratio)}`);
   return o;
 }
+function dCol(c, R) {
+  const o = c.d, cc = o.c, m = o.m, k = c.id, W0 = o.worst;
+  const head = eq(`Słup pod podporą ${esc(o.p.label)}: ${esc(m.name)}, ${f(cc.b, 0)}×${f(cc.h, 0)} mm, H = ${f(cc.L, 2)} m, A = ${f(o.sec.A, 0)} mm²; ciężar własny G = ${f(o.gam, 1)}·A·H = ${f(o.Gcol, 3)} kN; obciążenie – reakcja belki R_Ed z każdej kombinacji SGN`);
+  if (/^colbk/.test(k)) { const w = W0.buck, b = o.by, z = o.bz;
+    return head + eq(`${cTxt(w.cmb)}: N<sub>c,Ed</sub> = R<sub>Ed</sub> + γ<sub>G</sub>·G = ${f(w.Nc, 3)} kN; M<sub>Ed</sub> = N·e = ${f(w.Ntop, 3)}·${f(cc.e / 1000, 3)} = ${f(w.M, 3)} kNm`) +
+      eq(`λ<sub>y</sub> = ${f(b.lc, 0)}/${f(cc.h / Math.sqrt(12), 1)} = ${f(b.lam, 1)}, λ<sub>rel,y</sub> = ${f(b.lr, 3)} → k<sub>c,y</sub> = ${f(b.kc, 3)}; λ<sub>z</sub> = ${f(z.lam, 1)}, λ<sub>rel,z</sub> = ${f(z.lr, 3)} → k<sub>c,z</sub> = ${f(z.kc, 3)}`, '(6.21)–(6.29)') +
+      eq(`σ<sub>c,0,d</sub> = ${f(w.sc, 3)} MPa, σ<sub>m,d</sub> = ${f(w.sm, 3)} MPa; f<sub>c,0,d</sub> = ${f(w.fc0d, 2)}, f<sub>m,d</sub> = ${f(w.fmd, 2)} MPa`) +
+      eq(`σ<sub>c,0,d</sub>/(k<sub>c,y</sub>f<sub>c,0,d</sub>) + σ<sub>m,d</sub>/f<sub>m,d</sub> = ${f(w.r1, 3)}; σ<sub>c,0,d</sub>/(k<sub>c,z</sub>f<sub>c,0,d</sub>) + k<sub>m</sub>σ<sub>m,d</sub>/f<sub>m,d</sub> = ${f(w.r2, 3)} ${okR(c.ratio)}`, '(6.23), (6.24)'); }
+  if (/^colend/.test(k)) { const w = W0.end;
+    return head + eq(`A<sub>net</sub> = ${cc.type === 'slot' ? `A − (t<sub>s</sub> + 2)·h = ${f(o.sec.A, 0)} − ${f(cc.ts + 2, 0)}·${f(cc.h, 0)}` : 'A'} = ${f(o.Anet, 0)} mm²; ${cTxt(w.cmb)}`) + eq(`σ<sub>c,0,d</sub> = ${f(w.Nc, 3)}·10³/${f(o.Anet, 0)} = ${f(w.sce, 3)} ≤ f<sub>c,0,d</sub> = ${f(w.fc0d, 2)} MPa ${okR(c.ratio)}`, '(6.2)'); }
+  if (/^colcn/.test(k)) { const w = W0.conn, F0 = o.F0, F90 = o.F90, md = F0.modes;
+    let s = head + eq(`${cc.fast === 'bolt' ? 'Śruby' : 'Sworznie'} ⌀${cc.d} (${esc(E().FAST_STEEL[cc.grade].n)}, f<sub>u,k</sub> = ${f(F0.fu, 0)} MPa), ${cc.n} × ${cc.m} = ${o.nTot} szt., 2 płaszczyzny ścinania; ${cc.type === 'slot' ? `blacha wpuszczana t<sub>s</sub> = ${f(cc.ts, 0)} mm, t<sub>1</sub> = (b − t<sub>s</sub> − 2)/2 = ${f(F0.t, 1)} mm` : `blachy zewnętrzne t<sub>s</sub> = ${f(cc.ts, 0)} mm, t<sub>2</sub> = ${f(F0.t, 0)} mm`}`);
+    s += eq(`f<sub>h,0,k</sub> = 0,082(1 − 0,01d)ρ<sub>k</sub> = 0,082·(1 − 0,01·${cc.d})·${f(m.rhok, 0)} = ${f(F0.fh0, 2)} MPa; k<sub>90</sub> = ${f(F0.k90, 3)} → f<sub>h,90,k</sub> = ${f(F90.fh, 2)} MPa; M<sub>y,Rk</sub> = 0,3f<sub>u,k</sub>d<sup>2,6</sup> = ${f(F0.My / 1000, 1)} Nm${F0.Fax ? `; F<sub>ax,Rk</sub> = ${f(F0.Fax / 1000, 2)} kN (podkładka)` : ''}`, '(8.30), (8.32), (8.33)');
+    s += cc.type === 'slot' ? eq(`F<sub>v,Rk</sub> (α = 0°) = min{(f) ${f(md.f / 1000, 2)}; (g) ${f(md.g / 1000, 2)}; (h) ${f(md.h / 1000, 2)}} = <b>${f(F0.Fv / 1000, 2)} kN</b>; (α = 90°) ${f(F90.Fv / 1000, 2)} kN`, '(8.11)')
+      : eq(`F<sub>v,Rk</sub> (α = 0°): (j) ${f(md.j / 1000, 2)}, (k) ${f(md.k / 1000, 2)}, (m) ${f(md.m / 1000, 2)} kN → ${f(F0.Fv / 1000, 2)} kN (interpolacja blacha cienka/gruba ${f(md.thinThick, 2)}); (α = 90°) ${f(F90.Fv / 1000, 2)} kN`, '(8.12), (8.13)');
+    s += eq(`n<sub>ef</sub> = min{n; n<sup>0,9</sup>·(a<sub>1</sub>/(13d))<sup>0,25</sup>} = min{${cc.n}; ${f(Math.pow(cc.n, 0.9) * Math.pow(cc.a1 / (13 * cc.d), 0.25), 3)}} = ${f(o.nef0, 3)}`, '(8.34)');
+    s += eq(`${cTxt(w.cmb)}, γ<sub>M</sub> = ${f(w.gMconn, 2)}: R<sub>t,d</sub> = k<sub>mod</sub>F<sub>v,Rk</sub>/γ<sub>M</sub>·2·n<sub>ef</sub>·m = ${f(w.RN, 2)} kN; R<sub>v,d</sub> (w poprzek włókien) = ${f(w.RH, 2)} kN`);
+    s += eq(`F<sub>t,Ed</sub> = ${f(w.Nt, 2)} kN (odrywanie), F<sub>v,Ed</sub> = H = ${f(w.H, 2)} kN → (${f(w.Nt, 2)}/${f(w.RN, 2)})² + (${f(w.H, 2)}/${f(w.RH, 2)})² = ${f(c.ratio, 3)} ≤ 1 ${okR(c.ratio)}`);
+    return s; }
+  if (/^colbs/.test(k)) { const w = W0.block;
+    return head + eq(`L<sub>net,t</sub> = (m − 1)(a<sub>2</sub> − d) = ${f(o.Lt, 0)} mm, L<sub>net,v</sub> = 2[(n − 1)(a<sub>1</sub> − d) + a<sub>3</sub> − d/2] = ${f(o.Lv, 0)} mm; t<sub>ef</sub> = ${f(w.tef, 1)} mm; A<sub>net,t</sub> = ${f(w.Anet_t, 0)} mm², A<sub>net,v</sub> = ${f(w.Anet_v, 0)} mm²`, 'zał. A') +
+      eq(`F<sub>bs,Rd</sub> = k<sub>mod</sub>/γ<sub>M</sub>·max{1,5A<sub>net,t</sub>f<sub>t,0,k</sub>; 0,7A<sub>net,v</sub>f<sub>v,k</sub>}${cc.type === 'slot' ? ' (×2 – dwie warstwy drewna)' : ''} = ${f(w.Fbs, 2)} kN ≥ F<sub>t,Ed</sub> = ${f(w.Nt, 2)} kN ${okR(c.ratio)}`, '(A.1)–(A.5)'); }
+  if (/^colsp/.test(k)) { const q = o.req, a = o.act, row = (n, l) => `${l} = ${isFinite(a[n]) ? f(a[n], 0) : '—'} ≥ ${f(q[n], 0)} mm ${isFinite(a[n]) ? ok(q[n], a[n], '') : ''}`;
+    return eq(`${cc.fast === 'bolt' ? 'Śruby – tab. 8.5' : 'Sworznie – tab. 8.6'}; α = 0° (wyrywanie)${o.worst.conn && o.worst.conn.H > 0 ? ' i 90° (siła pozioma)' : ''}: ${[row('a1', 'a₁'), row('a2', 'a₂'), row('a3', 'a₃,t'), row('a4', 'a₄')].join('; ')}`) + eq(`Rozmieszczenie w przekroju: (m − 1)a<sub>2</sub> + 2a<sub>4</sub> = ${f((cc.m - 1) * cc.a2 + 2 * cc.a4, 0)} ≤ h = ${f(cc.h, 0)} mm ${ok((cc.m - 1) * cc.a2 + 2 * cc.a4, cc.h)}`); }
+  if (/^colpb/.test(k)) { const w = W0.pbear;
+    return eq(`Blacha ${esc(cc.steel)} (f<sub>u</sub> = ${f(E().PLATE_STEEL[cc.steel].fu, 0)} MPa), t = ${f(cc.ts, 0)} mm, d<sub>0</sub> = ${f(cc.fast === 'bolt' ? cc.d + 1 : cc.d, 0)} mm: α<sub>b</sub> = min{e<sub>1</sub>/(3d<sub>0</sub>); f<sub>ub</sub>/f<sub>u</sub>; 1} = ${f(o.alphaB, 3)}; F<sub>b,Rd</sub> = 2,5·α<sub>b</sub>·f<sub>u</sub>·d·t/γ<sub>M2</sub> = ${f(o.Fb1 / 1000, 2)} kN`, 'EN 1993-1-8, tab. 3.4') +
+      eq(`F<sub>1,Ed</sub> = √(N<sub>t</sub>² + H²)/(n·m${o.nPl > 1 ? '·2' : ''}) = ${f(w.F1, 3)} ≤ ${f(o.Fb1 / 1000, 2)} kN ${okR(c.ratio)}`); }
+  if (/^colcc/.test(k)) { const w = W0.conc;
+    return eq(`Beton ${esc(cc.conc)}: f<sub>cd</sub> = f<sub>ck</sub>/γ<sub>c</sub> = ${f(o.fck, 0)}/1,4 = ${f(o.fcd, 2)} MPa; f<sub>jd</sub> = β<sub>j</sub>k<sub>j</sub>f<sub>cd</sub> = 2/3·1,0·${f(o.fcd, 2)} = ${f(o.fjd, 2)} MPa`, 'EN 1993-1-8, 6.2.5') + eq(`σ = N<sub>c,Ed</sub>/(a·b) = ${f(w.Nc, 3)}·10³/(${f(cc.pa, 0)}·${f(cc.pb, 0)}) = ${f(w.s, 3)} ≤ ${f(o.fjd, 2)} MPa ${okR(c.ratio)}`); }
+  if (/^colan/.test(k)) { const w = W0.anch;
+    return eq(`Kotwy: ${cc.na} szt., N<sub>Rd</sub> = ${f(cc.NRd, 2)} kN, V<sub>Rd</sub> = ${f(cc.VRd, 2)} kN (wartości obliczeniowe z ETA kotwy – przyjęte przez projektanta)`) + eq(`β<sub>N</sub> = N<sub>t,Ed</sub>/(n·N<sub>Rd</sub>) = ${f(w.Nt, 2)}/(${cc.na}·${f(cc.NRd, 2)}) = ${f(w.bN, 3)}; β<sub>V</sub> = H/(n·V<sub>Rd</sub>) = ${f(w.bV, 3)}; β<sub>N</sub><sup>1,5</sup> + β<sub>V</sub><sup>1,5</sup> = ${f(c.ratio, 3)} ≤ 1 ${okR(c.ratio)}`, 'EN 1992-4, (7.54)'); }
+  return '';
+}
 BDR.detail = function (c) {
   const R = U().R; if (!c || !R) return '';
   try {
@@ -4619,6 +4892,7 @@ BDR.detail = function (c) {
     if (/^w(inst|netfin|fin)/.test(id)) return dDefl(c, R);
     if (/^vib/.test(id) && R.vib) return dVib(c, R);
     if (/^fi[bsl]/.test(id)) return dFire(c, R);
+    if (/^col/.test(id) && c.d && c.d.worst) return dCol(c, R);
   } catch (e) { console.error(e); return `<div class="eq">(${esc(e.message)})</div>`; }
   return '';
 };
@@ -4695,6 +4969,7 @@ function secStab(R) {
   return `<h3>Współczynniki zwichrzenia w odcinkach</h3>${o}<p class="note">Sprawdzenie zwichrzenia wykonano tylko w strefach, w których k<sub>crit</sub> &lt; 1 i występuje moment o danym znaku.</p>`;
 }
 function summary(R, S) {
+  if (U().syncTicks) U().syncTicks();
   const ticks = S.meta.ticks || {}, all = R.checks;
   let list = all.filter(c => ticks[c.id]);
   let o = `<h2>Zestawienie wyników</h2>`;
@@ -4721,6 +4996,7 @@ BDR.build = function (R, S) {
   add(c => /^SGN – ścinanie/.test(c.grp), 'SGN – ścinanie i skręcanie (6.1.7, 6.1.8)');
   add(c => /^SGN – docisk/.test(c.grp), 'SGN – docisk w poprzek włókien i podcięcia (6.1.5, 6.5.2)');
   { const has = R.checks.some(c => /^SGN – stateczność/.test(c.grp)); o += `<h2>${n}. SGN – stateczność (6.3)</h2>` + secStab(R); if (has) R.checks.filter(c => /^SGN – stateczność/.test(c.grp)).forEach(c => { o += `<h3>${sym(c.name)} <span class="r">(${esc(c.ref)})</span></h3>${BDR.detail(c)}`; }); else o += `<p>Brak stref wymagających sprawdzenia zwichrzenia lub wyboczenia.</p>`; n++; }
+  add(c => /^Słup/.test(c.grp), 'Słupy pod podporami i połączenie z fundamentem (6.3.2, 8.2.3, zał. A)');
   add(c => /ugięcia/.test(c.grp), 'SGU – ugięcia (2.2.3, 7.2)', () => `<div class="fig">${(() => { const st = R.st, md = R.md, x = Array.from(st.stX), w = k => Array.from(R.defl[k], v => v * 1000); return u.lineChart({ W: 860, vl: md.sups.map(p => ({ x: p.x, l: p.label })), title: 'Ugięcia [mm] (przęsła – od cięciwy podpór)', series: [{ x, y: w('instMx'), c: '#a35d00', l: 'w_inst' }, { x, y: w('finMx'), c: '#1d7f3c', fill: '#a6c76a', l: 'w_fin' }, { x, y: w('finMn'), c: '#1d7f3c', w: 1 }], yl: 'w [mm]', invert: true, dp: 1, marks: u.extremeMarks(st, w('finMx'), w('finMn'), md, '#1d7f3c', 1) }); })()}</div>`);
   add(c => /drgania/.test(c.grp), 'SGU – drgania stropu (7.3.3)');
   add(c => /^Pożar/.test(c.grp), `Odporność ogniowa R ${S.fire.R} (PN-EN 1995-1-2, 4.2.2)`);
@@ -4882,8 +5158,27 @@ BDD.build = function (R, S) {
   // przeguby, stężenia
   S.nodes.forEach(nd => { const sg = md.segs[nd.seg]; if (!sg || !nd.hinge) return; const xx = X(sg.x0 + nd.a); line(xx, 0, xx, sg.h, 'OPISY'); circle(xx, sg.h / 2, 30, 'OPISY'); });
   if (S.ltb.on && S.ltb.top > 0) md.segs.forEach(sg => { for (let x = sg.x0 + S.ltb.top; x < sg.x1 - 1e-6; x += S.ltb.top) { const xx = X(x); line(xx - 40, hmax + 120, xx, hmax + 30, 'STEZENIA'); line(xx, hmax + 30, xx + 40, hmax + 120, 'STEZENIA'); } });
+  // słupy pod podporami ze stopami (oś słupa w osi podpory, czoło słupa pod spodem belki)
+  let yLow = 0;
+  md.sups.forEach(p => {
+    const c0 = S.supCfg[p.i] && S.supCfg[p.i].col; if (!c0 || !c0.on) return;
+    const c = window.EC5.normCol(c0), xx = X(p.x), Lc = c.L * 1000, yB = -60 - Lc;
+    rect(xx - c.h / 2, yB, c.h, Lc, 'SLUPY');
+    const yP = yB - c.gap - 15;
+    rect(xx - c.pa / 2, yP, c.pa, 15, 'STOPY');
+    const plH = c.a3 + (c.n - 1) * c.a1 + c.e1p + c.gap;
+    rect(xx - (c.h - 20) / 2, yP + 15, c.h - 20, plH, 'STOPY');
+    const xs = c.m === 1 ? [0] : Array.from({ length: c.m }, (_, j) => -(c.m - 1) * c.a2 / 2 + j * c.a2);
+    for (let i = 0; i < c.n; i++) xs.forEach(dx => circle(xx + dx, yB + c.a3 + i * c.a1, c.d / 2, 'STOPY'));
+    const na = c.na, ax = na === 1 ? [0] : Array.from({ length: na }, (_, i) => -c.pa / 2 + 35 + (c.pa - 70) * i / (na - 1));
+    ax.forEach(dx => line(xx + dx, yP + 15, xx + dx, yP - 250, 'STOPY'));
+    rect(xx - c.pa / 2 - 150, yP - 400, c.pa + 300, 400, 'FUNDAMENT');
+    text(xx + c.h / 2 + 40, yB + Lc / 2, 50, `SLUP ${Math.round(c.b)}x${Math.round(c.h)}, H=${Math.round(Lc)}`, 'OPISY');
+    text(xx + c.h / 2 + 40, yB + Lc / 2 - 80, 40, `${c.type === 'slot' ? 'blacha wpuszczana' : 'blachy zewn.'} t=${c.ts}, ${c.n * c.m}x fi${c.d}, ${c.na} kotwy`, 'OPISY');
+    yLow = Math.min(yLow, yP - 400);
+  });
   // wymiary
-  let y = -500;
+  let y = Math.min(-500, yLow - 300);
   md.segs.forEach(sg => dimH(X(sg.x0), X(sg.x1), y, String(Math.round(sg.L * 1000))));
   y -= 300; dimH(0, md.Lmember * 1000, y, `${Math.round(md.Lmember * 1000)}`);
   line(-250, 0, -250, md.segs[0].h, 'WYMIARY'); text(-300, md.segs[0].h / 2, 60, String(Math.round(md.segs[0].h)), 'WYMIARY');
@@ -4898,8 +5193,8 @@ BDD.build = function (R, S) {
   const mt = R.mt;
   text(0, hmax + 450, 100, `${S.meta.name || 'Belka'} - ${mt.m.name} ${sec.n > 1 ? sec.n + 'x' : ''}${Math.round(sec.b1)}x${Math.round(sec.h)} mm, L = ${Math.round(md.Lmember * 1000)} mm`, 'OPISY');
   text(0, hmax + 320, 60, `Klasa uzytkowania ${S.env.sc}; eta max = ${Math.round(R.maxEta * 100)}%; BelkaDR`, 'OPISY');
-  const layers = [['BELKA', 7, 'CONTINUOUS'], ['PODPORY', 8, 'CONTINUOUS'], ['OSIE', 1, 'DASHDOT'], ['PODCIECIA', 1, 'CONTINUOUS'], ['STEZENIA', 3, 'CONTINUOUS'], ['WYMIARY', 4, 'CONTINUOUS'], ['PRZEKROJ', 7, 'CONTINUOUS'], ['PRZEKROJ_POZAR', 1, 'DASHED'], ['OPISY', 2, 'CONTINUOUS']];
-  const H = ['0', 'SECTION', '2', 'HEADER', '9', '$ACADVER', '1', 'AC1009', '9', '$INSBASE', '10', '0.0', '20', '0.0', '30', '0.0', '9', '$EXTMIN', '10', '-1000.0', '20', '-1500.0', '30', '0.0', '9', '$EXTMAX', '10', n(md.Lmember * 1000 + 2000), '20', n(hmax + 1000), '30', '0.0', '0', 'ENDSEC',
+  const layers = [['BELKA', 7, 'CONTINUOUS'], ['PODPORY', 8, 'CONTINUOUS'], ['OSIE', 1, 'DASHDOT'], ['PODCIECIA', 1, 'CONTINUOUS'], ['STEZENIA', 3, 'CONTINUOUS'], ['WYMIARY', 4, 'CONTINUOUS'], ['PRZEKROJ', 7, 'CONTINUOUS'], ['PRZEKROJ_POZAR', 1, 'DASHED'], ['OPISY', 2, 'CONTINUOUS'], ['SLUPY', 30, 'CONTINUOUS'], ['STOPY', 8, 'CONTINUOUS'], ['FUNDAMENT', 9, 'CONTINUOUS']];
+  const H = ['0', 'SECTION', '2', 'HEADER', '9', '$ACADVER', '1', 'AC1009', '9', '$INSBASE', '10', '0.0', '20', '0.0', '30', '0.0', '9', '$EXTMIN', '10', '-1000.0', '20', n(Math.min(-1500, y - 400)), '30', '0.0', '9', '$EXTMAX', '10', n(md.Lmember * 1000 + 2000), '20', n(hmax + 1000), '30', '0.0', '0', 'ENDSEC',
     '0', 'SECTION', '2', 'TABLES',
     '0', 'TABLE', '2', 'LTYPE', '70', '3',
     '0', 'LTYPE', '2', 'CONTINUOUS', '70', '0', '3', 'Solid line', '72', '65', '73', '0', '40', '0.0',

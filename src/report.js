@@ -134,6 +134,39 @@ function dFire(c, R) {
   else o += eq(`l<sub>ef</sub> = ${f(d.z.lef, 0)} mm, σ<sub>m,crit,fi</sub> = ${f(d.z.sigcrit, 2)} MPa (k<sub>fi</sub>E<sub>0,05</sub>, k<sub>fi</sub>G<sub>0,05</sub>), λ<sub>rel,m</sub> = ${f(d.z.lam, 3)}, k<sub>crit</sub> = ${f(d.z.kcrit, 3)}; σ<sub>m,d,fi</sub> = ${f(d.sm, 2)} MPa → ${f(c.ratio, 3)} ${okR(c.ratio)}`);
   return o;
 }
+function dCol(c, R) {
+  const o = c.d, cc = o.c, m = o.m, k = c.id, W0 = o.worst;
+  const head = eq(`Słup pod podporą ${esc(o.p.label)}: ${esc(m.name)}, ${f(cc.b, 0)}×${f(cc.h, 0)} mm, H = ${f(cc.L, 2)} m, A = ${f(o.sec.A, 0)} mm²; ciężar własny G = ${f(o.gam, 1)}·A·H = ${f(o.Gcol, 3)} kN; obciążenie – reakcja belki R_Ed z każdej kombinacji SGN`);
+  if (/^colbk/.test(k)) { const w = W0.buck, b = o.by, z = o.bz;
+    return head + eq(`${cTxt(w.cmb)}: N<sub>c,Ed</sub> = R<sub>Ed</sub> + γ<sub>G</sub>·G = ${f(w.Nc, 3)} kN; M<sub>Ed</sub> = N·e = ${f(w.Ntop, 3)}·${f(cc.e / 1000, 3)} = ${f(w.M, 3)} kNm`) +
+      eq(`λ<sub>y</sub> = ${f(b.lc, 0)}/${f(cc.h / Math.sqrt(12), 1)} = ${f(b.lam, 1)}, λ<sub>rel,y</sub> = ${f(b.lr, 3)} → k<sub>c,y</sub> = ${f(b.kc, 3)}; λ<sub>z</sub> = ${f(z.lam, 1)}, λ<sub>rel,z</sub> = ${f(z.lr, 3)} → k<sub>c,z</sub> = ${f(z.kc, 3)}`, '(6.21)–(6.29)') +
+      eq(`σ<sub>c,0,d</sub> = ${f(w.sc, 3)} MPa, σ<sub>m,d</sub> = ${f(w.sm, 3)} MPa; f<sub>c,0,d</sub> = ${f(w.fc0d, 2)}, f<sub>m,d</sub> = ${f(w.fmd, 2)} MPa`) +
+      eq(`σ<sub>c,0,d</sub>/(k<sub>c,y</sub>f<sub>c,0,d</sub>) + σ<sub>m,d</sub>/f<sub>m,d</sub> = ${f(w.r1, 3)}; σ<sub>c,0,d</sub>/(k<sub>c,z</sub>f<sub>c,0,d</sub>) + k<sub>m</sub>σ<sub>m,d</sub>/f<sub>m,d</sub> = ${f(w.r2, 3)} ${okR(c.ratio)}`, '(6.23), (6.24)'); }
+  if (/^colend/.test(k)) { const w = W0.end;
+    return head + eq(`A<sub>net</sub> = ${cc.type === 'slot' ? `A − (t<sub>s</sub> + 2)·h = ${f(o.sec.A, 0)} − ${f(cc.ts + 2, 0)}·${f(cc.h, 0)}` : 'A'} = ${f(o.Anet, 0)} mm²; ${cTxt(w.cmb)}`) + eq(`σ<sub>c,0,d</sub> = ${f(w.Nc, 3)}·10³/${f(o.Anet, 0)} = ${f(w.sce, 3)} ≤ f<sub>c,0,d</sub> = ${f(w.fc0d, 2)} MPa ${okR(c.ratio)}`, '(6.2)'); }
+  if (/^colcn/.test(k)) { const w = W0.conn, F0 = o.F0, F90 = o.F90, md = F0.modes;
+    let s = head + eq(`${cc.fast === 'bolt' ? 'Śruby' : 'Sworznie'} ⌀${cc.d} (${esc(E().FAST_STEEL[cc.grade].n)}, f<sub>u,k</sub> = ${f(F0.fu, 0)} MPa), ${cc.n} × ${cc.m} = ${o.nTot} szt., 2 płaszczyzny ścinania; ${cc.type === 'slot' ? `blacha wpuszczana t<sub>s</sub> = ${f(cc.ts, 0)} mm, t<sub>1</sub> = (b − t<sub>s</sub> − 2)/2 = ${f(F0.t, 1)} mm` : `blachy zewnętrzne t<sub>s</sub> = ${f(cc.ts, 0)} mm, t<sub>2</sub> = ${f(F0.t, 0)} mm`}`);
+    s += eq(`f<sub>h,0,k</sub> = 0,082(1 − 0,01d)ρ<sub>k</sub> = 0,082·(1 − 0,01·${cc.d})·${f(m.rhok, 0)} = ${f(F0.fh0, 2)} MPa; k<sub>90</sub> = ${f(F0.k90, 3)} → f<sub>h,90,k</sub> = ${f(F90.fh, 2)} MPa; M<sub>y,Rk</sub> = 0,3f<sub>u,k</sub>d<sup>2,6</sup> = ${f(F0.My / 1000, 1)} Nm${F0.Fax ? `; F<sub>ax,Rk</sub> = ${f(F0.Fax / 1000, 2)} kN (podkładka)` : ''}`, '(8.30), (8.32), (8.33)');
+    s += cc.type === 'slot' ? eq(`F<sub>v,Rk</sub> (α = 0°) = min{(f) ${f(md.f / 1000, 2)}; (g) ${f(md.g / 1000, 2)}; (h) ${f(md.h / 1000, 2)}} = <b>${f(F0.Fv / 1000, 2)} kN</b>; (α = 90°) ${f(F90.Fv / 1000, 2)} kN`, '(8.11)')
+      : eq(`F<sub>v,Rk</sub> (α = 0°): (j) ${f(md.j / 1000, 2)}, (k) ${f(md.k / 1000, 2)}, (m) ${f(md.m / 1000, 2)} kN → ${f(F0.Fv / 1000, 2)} kN (interpolacja blacha cienka/gruba ${f(md.thinThick, 2)}); (α = 90°) ${f(F90.Fv / 1000, 2)} kN`, '(8.12), (8.13)');
+    s += eq(`n<sub>ef</sub> = min{n; n<sup>0,9</sup>·(a<sub>1</sub>/(13d))<sup>0,25</sup>} = min{${cc.n}; ${f(Math.pow(cc.n, 0.9) * Math.pow(cc.a1 / (13 * cc.d), 0.25), 3)}} = ${f(o.nef0, 3)}`, '(8.34)');
+    s += eq(`${cTxt(w.cmb)}, γ<sub>M</sub> = ${f(w.gMconn, 2)}: R<sub>t,d</sub> = k<sub>mod</sub>F<sub>v,Rk</sub>/γ<sub>M</sub>·2·n<sub>ef</sub>·m = ${f(w.RN, 2)} kN; R<sub>v,d</sub> (w poprzek włókien) = ${f(w.RH, 2)} kN`);
+    s += eq(`F<sub>t,Ed</sub> = ${f(w.Nt, 2)} kN (odrywanie), F<sub>v,Ed</sub> = H = ${f(w.H, 2)} kN → (${f(w.Nt, 2)}/${f(w.RN, 2)})² + (${f(w.H, 2)}/${f(w.RH, 2)})² = ${f(c.ratio, 3)} ≤ 1 ${okR(c.ratio)}`);
+    return s; }
+  if (/^colbs/.test(k)) { const w = W0.block;
+    return head + eq(`L<sub>net,t</sub> = (m − 1)(a<sub>2</sub> − d) = ${f(o.Lt, 0)} mm, L<sub>net,v</sub> = 2[(n − 1)(a<sub>1</sub> − d) + a<sub>3</sub> − d/2] = ${f(o.Lv, 0)} mm; t<sub>ef</sub> = ${f(w.tef, 1)} mm; A<sub>net,t</sub> = ${f(w.Anet_t, 0)} mm², A<sub>net,v</sub> = ${f(w.Anet_v, 0)} mm²`, 'zał. A') +
+      eq(`F<sub>bs,Rd</sub> = k<sub>mod</sub>/γ<sub>M</sub>·max{1,5A<sub>net,t</sub>f<sub>t,0,k</sub>; 0,7A<sub>net,v</sub>f<sub>v,k</sub>}${cc.type === 'slot' ? ' (×2 – dwie warstwy drewna)' : ''} = ${f(w.Fbs, 2)} kN ≥ F<sub>t,Ed</sub> = ${f(w.Nt, 2)} kN ${okR(c.ratio)}`, '(A.1)–(A.5)'); }
+  if (/^colsp/.test(k)) { const q = o.req, a = o.act, row = (n, l) => `${l} = ${isFinite(a[n]) ? f(a[n], 0) : '—'} ≥ ${f(q[n], 0)} mm ${isFinite(a[n]) ? ok(q[n], a[n], '') : ''}`;
+    return eq(`${cc.fast === 'bolt' ? 'Śruby – tab. 8.5' : 'Sworznie – tab. 8.6'}; α = 0° (wyrywanie)${o.worst.conn && o.worst.conn.H > 0 ? ' i 90° (siła pozioma)' : ''}: ${[row('a1', 'a₁'), row('a2', 'a₂'), row('a3', 'a₃,t'), row('a4', 'a₄')].join('; ')}`) + eq(`Rozmieszczenie w przekroju: (m − 1)a<sub>2</sub> + 2a<sub>4</sub> = ${f((cc.m - 1) * cc.a2 + 2 * cc.a4, 0)} ≤ h = ${f(cc.h, 0)} mm ${ok((cc.m - 1) * cc.a2 + 2 * cc.a4, cc.h)}`); }
+  if (/^colpb/.test(k)) { const w = W0.pbear;
+    return eq(`Blacha ${esc(cc.steel)} (f<sub>u</sub> = ${f(E().PLATE_STEEL[cc.steel].fu, 0)} MPa), t = ${f(cc.ts, 0)} mm, d<sub>0</sub> = ${f(cc.fast === 'bolt' ? cc.d + 1 : cc.d, 0)} mm: α<sub>b</sub> = min{e<sub>1</sub>/(3d<sub>0</sub>); f<sub>ub</sub>/f<sub>u</sub>; 1} = ${f(o.alphaB, 3)}; F<sub>b,Rd</sub> = 2,5·α<sub>b</sub>·f<sub>u</sub>·d·t/γ<sub>M2</sub> = ${f(o.Fb1 / 1000, 2)} kN`, 'EN 1993-1-8, tab. 3.4') +
+      eq(`F<sub>1,Ed</sub> = √(N<sub>t</sub>² + H²)/(n·m${o.nPl > 1 ? '·2' : ''}) = ${f(w.F1, 3)} ≤ ${f(o.Fb1 / 1000, 2)} kN ${okR(c.ratio)}`); }
+  if (/^colcc/.test(k)) { const w = W0.conc;
+    return eq(`Beton ${esc(cc.conc)}: f<sub>cd</sub> = f<sub>ck</sub>/γ<sub>c</sub> = ${f(o.fck, 0)}/1,4 = ${f(o.fcd, 2)} MPa; f<sub>jd</sub> = β<sub>j</sub>k<sub>j</sub>f<sub>cd</sub> = 2/3·1,0·${f(o.fcd, 2)} = ${f(o.fjd, 2)} MPa`, 'EN 1993-1-8, 6.2.5') + eq(`σ = N<sub>c,Ed</sub>/(a·b) = ${f(w.Nc, 3)}·10³/(${f(cc.pa, 0)}·${f(cc.pb, 0)}) = ${f(w.s, 3)} ≤ ${f(o.fjd, 2)} MPa ${okR(c.ratio)}`); }
+  if (/^colan/.test(k)) { const w = W0.anch;
+    return eq(`Kotwy: ${cc.na} szt., N<sub>Rd</sub> = ${f(cc.NRd, 2)} kN, V<sub>Rd</sub> = ${f(cc.VRd, 2)} kN (wartości obliczeniowe z ETA kotwy – przyjęte przez projektanta)`) + eq(`β<sub>N</sub> = N<sub>t,Ed</sub>/(n·N<sub>Rd</sub>) = ${f(w.Nt, 2)}/(${cc.na}·${f(cc.NRd, 2)}) = ${f(w.bN, 3)}; β<sub>V</sub> = H/(n·V<sub>Rd</sub>) = ${f(w.bV, 3)}; β<sub>N</sub><sup>1,5</sup> + β<sub>V</sub><sup>1,5</sup> = ${f(c.ratio, 3)} ≤ 1 ${okR(c.ratio)}`, 'EN 1992-4, (7.54)'); }
+  return '';
+}
 BDR.detail = function (c) {
   const R = U().R; if (!c || !R) return '';
   try {
@@ -151,6 +184,7 @@ BDR.detail = function (c) {
     if (/^w(inst|netfin|fin)/.test(id)) return dDefl(c, R);
     if (/^vib/.test(id) && R.vib) return dVib(c, R);
     if (/^fi[bsl]/.test(id)) return dFire(c, R);
+    if (/^col/.test(id) && c.d && c.d.worst) return dCol(c, R);
   } catch (e) { console.error(e); return `<div class="eq">(${esc(e.message)})</div>`; }
   return '';
 };
@@ -227,6 +261,7 @@ function secStab(R) {
   return `<h3>Współczynniki zwichrzenia w odcinkach</h3>${o}<p class="note">Sprawdzenie zwichrzenia wykonano tylko w strefach, w których k<sub>crit</sub> &lt; 1 i występuje moment o danym znaku.</p>`;
 }
 function summary(R, S) {
+  if (U().syncTicks) U().syncTicks();
   const ticks = S.meta.ticks || {}, all = R.checks;
   let list = all.filter(c => ticks[c.id]);
   let o = `<h2>Zestawienie wyników</h2>`;
@@ -253,6 +288,7 @@ BDR.build = function (R, S) {
   add(c => /^SGN – ścinanie/.test(c.grp), 'SGN – ścinanie i skręcanie (6.1.7, 6.1.8)');
   add(c => /^SGN – docisk/.test(c.grp), 'SGN – docisk w poprzek włókien i podcięcia (6.1.5, 6.5.2)');
   { const has = R.checks.some(c => /^SGN – stateczność/.test(c.grp)); o += `<h2>${n}. SGN – stateczność (6.3)</h2>` + secStab(R); if (has) R.checks.filter(c => /^SGN – stateczność/.test(c.grp)).forEach(c => { o += `<h3>${sym(c.name)} <span class="r">(${esc(c.ref)})</span></h3>${BDR.detail(c)}`; }); else o += `<p>Brak stref wymagających sprawdzenia zwichrzenia lub wyboczenia.</p>`; n++; }
+  add(c => /^Słup/.test(c.grp), 'Słupy pod podporami i połączenie z fundamentem (6.3.2, 8.2.3, zał. A)');
   add(c => /ugięcia/.test(c.grp), 'SGU – ugięcia (2.2.3, 7.2)', () => `<div class="fig">${(() => { const st = R.st, md = R.md, x = Array.from(st.stX), w = k => Array.from(R.defl[k], v => v * 1000); return u.lineChart({ W: 860, vl: md.sups.map(p => ({ x: p.x, l: p.label })), title: 'Ugięcia [mm] (przęsła – od cięciwy podpór)', series: [{ x, y: w('instMx'), c: '#a35d00', l: 'w_inst' }, { x, y: w('finMx'), c: '#1d7f3c', fill: '#a6c76a', l: 'w_fin' }, { x, y: w('finMn'), c: '#1d7f3c', w: 1 }], yl: 'w [mm]', invert: true, dp: 1, marks: u.extremeMarks(st, w('finMx'), w('finMn'), md, '#1d7f3c', 1) }); })()}</div>`);
   add(c => /drgania/.test(c.grp), 'SGU – drgania stropu (7.3.3)');
   add(c => /^Pożar/.test(c.grp), `Odporność ogniowa R ${S.fire.R} (PN-EN 1995-1-2, 4.2.2)`);

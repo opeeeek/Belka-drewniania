@@ -375,6 +375,7 @@ function normalize(S0) {
   if (typeof S.meta.ticks !== 'object' || S.meta.ticks === null || Array.isArray(S.meta.ticks)) S.meta.ticks = {};
   S.meta.repMode = ['full', 'static', 'own'].includes(S.meta.repMode) ? S.meta.repMode : 'full';
   S.meta.own = typeof S.meta.own === 'string' ? S.meta.own : ''; S.meta.ownOn = S.meta.ownOn === true;
+  if (typeof S.meta.tickMan !== 'object' || S.meta.tickMan === null || Array.isArray(S.meta.tickMan)) S.meta.tickMan = {};
   return S;
 }
 

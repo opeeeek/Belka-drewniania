@@ -38,8 +38,27 @@ BDD.build = function (R, S) {
   // przeguby, stężenia
   S.nodes.forEach(nd => { const sg = md.segs[nd.seg]; if (!sg || !nd.hinge) return; const xx = X(sg.x0 + nd.a); line(xx, 0, xx, sg.h, 'OPISY'); circle(xx, sg.h / 2, 30, 'OPISY'); });
   if (S.ltb.on && S.ltb.top > 0) md.segs.forEach(sg => { for (let x = sg.x0 + S.ltb.top; x < sg.x1 - 1e-6; x += S.ltb.top) { const xx = X(x); line(xx - 40, hmax + 120, xx, hmax + 30, 'STEZENIA'); line(xx, hmax + 30, xx + 40, hmax + 120, 'STEZENIA'); } });
+  // słupy pod podporami ze stopami (oś słupa w osi podpory, czoło słupa pod spodem belki)
+  let yLow = 0;
+  md.sups.forEach(p => {
+    const c0 = S.supCfg[p.i] && S.supCfg[p.i].col; if (!c0 || !c0.on) return;
+    const c = window.EC5.normCol(c0), xx = X(p.x), Lc = c.L * 1000, yB = -60 - Lc;
+    rect(xx - c.h / 2, yB, c.h, Lc, 'SLUPY');
+    const yP = yB - c.gap - 15;
+    rect(xx - c.pa / 2, yP, c.pa, 15, 'STOPY');
+    const plH = c.a3 + (c.n - 1) * c.a1 + c.e1p + c.gap;
+    rect(xx - (c.h - 20) / 2, yP + 15, c.h - 20, plH, 'STOPY');
+    const xs = c.m === 1 ? [0] : Array.from({ length: c.m }, (_, j) => -(c.m - 1) * c.a2 / 2 + j * c.a2);
+    for (let i = 0; i < c.n; i++) xs.forEach(dx => circle(xx + dx, yB + c.a3 + i * c.a1, c.d / 2, 'STOPY'));
+    const na = c.na, ax = na === 1 ? [0] : Array.from({ length: na }, (_, i) => -c.pa / 2 + 35 + (c.pa - 70) * i / (na - 1));
+    ax.forEach(dx => line(xx + dx, yP + 15, xx + dx, yP - 250, 'STOPY'));
+    rect(xx - c.pa / 2 - 150, yP - 400, c.pa + 300, 400, 'FUNDAMENT');
+    text(xx + c.h / 2 + 40, yB + Lc / 2, 50, `SLUP ${Math.round(c.b)}x${Math.round(c.h)}, H=${Math.round(Lc)}`, 'OPISY');
+    text(xx + c.h / 2 + 40, yB + Lc / 2 - 80, 40, `${c.type === 'slot' ? 'blacha wpuszczana' : 'blachy zewn.'} t=${c.ts}, ${c.n * c.m}x fi${c.d}, ${c.na} kotwy`, 'OPISY');
+    yLow = Math.min(yLow, yP - 400);
+  });
   // wymiary
-  let y = -500;
+  let y = Math.min(-500, yLow - 300);
   md.segs.forEach(sg => dimH(X(sg.x0), X(sg.x1), y, String(Math.round(sg.L * 1000))));
   y -= 300; dimH(0, md.Lmember * 1000, y, `${Math.round(md.Lmember * 1000)}`);
   line(-250, 0, -250, md.segs[0].h, 'WYMIARY'); text(-300, md.segs[0].h / 2, 60, String(Math.round(md.segs[0].h)), 'WYMIARY');
@@ -54,8 +73,8 @@ BDD.build = function (R, S) {
   const mt = R.mt;
   text(0, hmax + 450, 100, `${S.meta.name || 'Belka'} - ${mt.m.name} ${sec.n > 1 ? sec.n + 'x' : ''}${Math.round(sec.b1)}x${Math.round(sec.h)} mm, L = ${Math.round(md.Lmember * 1000)} mm`, 'OPISY');
   text(0, hmax + 320, 60, `Klasa uzytkowania ${S.env.sc}; eta max = ${Math.round(R.maxEta * 100)}%; BelkaDR`, 'OPISY');
-  const layers = [['BELKA', 7, 'CONTINUOUS'], ['PODPORY', 8, 'CONTINUOUS'], ['OSIE', 1, 'DASHDOT'], ['PODCIECIA', 1, 'CONTINUOUS'], ['STEZENIA', 3, 'CONTINUOUS'], ['WYMIARY', 4, 'CONTINUOUS'], ['PRZEKROJ', 7, 'CONTINUOUS'], ['PRZEKROJ_POZAR', 1, 'DASHED'], ['OPISY', 2, 'CONTINUOUS']];
-  const H = ['0', 'SECTION', '2', 'HEADER', '9', '$ACADVER', '1', 'AC1009', '9', '$INSBASE', '10', '0.0', '20', '0.0', '30', '0.0', '9', '$EXTMIN', '10', '-1000.0', '20', '-1500.0', '30', '0.0', '9', '$EXTMAX', '10', n(md.Lmember * 1000 + 2000), '20', n(hmax + 1000), '30', '0.0', '0', 'ENDSEC',
+  const layers = [['BELKA', 7, 'CONTINUOUS'], ['PODPORY', 8, 'CONTINUOUS'], ['OSIE', 1, 'DASHDOT'], ['PODCIECIA', 1, 'CONTINUOUS'], ['STEZENIA', 3, 'CONTINUOUS'], ['WYMIARY', 4, 'CONTINUOUS'], ['PRZEKROJ', 7, 'CONTINUOUS'], ['PRZEKROJ_POZAR', 1, 'DASHED'], ['OPISY', 2, 'CONTINUOUS'], ['SLUPY', 30, 'CONTINUOUS'], ['STOPY', 8, 'CONTINUOUS'], ['FUNDAMENT', 9, 'CONTINUOUS']];
+  const H = ['0', 'SECTION', '2', 'HEADER', '9', '$ACADVER', '1', 'AC1009', '9', '$INSBASE', '10', '0.0', '20', '0.0', '30', '0.0', '9', '$EXTMIN', '10', '-1000.0', '20', n(Math.min(-1500, y - 400)), '30', '0.0', '9', '$EXTMAX', '10', n(md.Lmember * 1000 + 2000), '20', n(hmax + 1000), '30', '0.0', '0', 'ENDSEC',
     '0', 'SECTION', '2', 'TABLES',
     '0', 'TABLE', '2', 'LTYPE', '70', '3',
     '0', 'LTYPE', '2', 'CONTINUOUS', '70', '0', '3', 'Solid line', '72', '65', '73', '0', '40', '0.0',

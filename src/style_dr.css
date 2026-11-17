@@ -47,3 +47,12 @@ table.reqt td.no { color: var(--fail); font-weight: 700; } table.reqt td.yes { c
 .schemesvg .ldoffg text { text-decoration: line-through; }
 .ldleg .ldl { pointer-events: auto; }
 .schsticky .schtools .btn.on { background: var(--acc2); border-color: var(--acc); color: var(--acc3); }
+.chsw { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0 0; position: sticky; top: -16px; z-index: 5; background: var(--panel); padding: 6px 0; }
+svg.lchart .pins text { paint-order: stroke; stroke: var(--panel, #fff); stroke-width: 2px; }
+.secnav { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; margin: 4px 0 8px; font-size: 12.5px; }
+.secnav input { width: 70px; text-align: right; }
+#modal .dlg.secpop { max-width: min(760px, 96vw); }
+.elevgrid .hsec .secedit svg { max-width: 100%; }
+.elevbox { position: relative; }
+.elevbox .v3sw { position: absolute; right: 10px; top: 8px; z-index: 2; }
+.elevbox .v3tools { position: absolute; left: 10px; top: 8px; z-index: 2; }

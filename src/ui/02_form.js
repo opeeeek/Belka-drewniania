@@ -231,13 +231,18 @@ function recalc() {
   renderActive();
 }
 // warunek, który przestał być spełniony, jest odznaczany; spełniony ponownie – zaznaczany (jeśli był)
+// odhaczanie sprawdzeń: automatycznie – spełnione zaznaczone, niespełnione odznaczone; ręczna zmiana (tickMan) obowiązuje,
+// dopóki warunek nie zmieni stanu (wtedy znów automatycznie)
 function syncTicks() {
   if (!R || !R.checks) return;
-  const T = S.meta.ticks || (S.meta.ticks = {});
+  const M = S.meta.tickMan && typeof S.meta.tickMan === 'object' ? S.meta.tickMan : (S.meta.tickMan = {});
   const st = {}; R.checks.forEach(c => { st[c.id] = c.status; });
-  if (prevStat) Object.keys(st).forEach(k => { if (prevStat[k] && prevStat[k] !== st[k]) { if (st[k] === 'fail') { if (T[k]) T['~' + k] = 1; delete T[k]; } else if (T['~' + k]) { T[k] = true; delete T['~' + k]; } } });
+  if (prevStat) Object.keys(st).forEach(k => { if (prevStat[k] && prevStat[k] !== st[k]) delete M[k]; });
   prevStat = st;
+  const T = {}; R.checks.forEach(c => { const v = c.id in M ? M[c.id] : c.status !== 'fail'; if (v) T[c.id] = true; });
+  S.meta.ticks = T;
 }
+U.syncTicks = syncTicks;
 function renderStatus() {
   const el = $('#status');
   const set = (cls, txt) => { el.className = cls; el.textContent = txt; };
@@ -247,7 +252,7 @@ function renderStatus() {
   else if (warns) set('warn', `✔ Nośność OK · uwagi: ${warns} · η = ${fmt(R.maxEta * 100, 0)}%`);
   else set('ok', `✔ Wszystkie warunki spełnione · η = ${fmt(R.maxEta * 100, 0)}%`);
 }
-const DSUM = [['SGN', 'zginanie', x => /^SGN – zginanie/.test(x.grp)], ['SGN', 'ścinanie', x => /^SGN – ścinanie/.test(x.grp)], ['SGN', 'docisk', x => /^SGN – docisk/.test(x.grp)], ['SGN', 'stateczność', x => /^SGN – stateczność/.test(x.grp)], ['SGU', 'ugięcia', x => /ugięcia/.test(x.grp)], ['SGU', 'drgania', x => /drgania/.test(x.grp)], ['', 'pożar', x => /^Pożar/.test(x.grp)], ['', 'konstrukcja', x => /^Konstrukcja/.test(x.grp)]];
+const DSUM = [['SGN', 'zginanie', x => /^SGN – zginanie/.test(x.grp)], ['SGN', 'ścinanie', x => /^SGN – ścinanie/.test(x.grp)], ['SGN', 'docisk', x => /^SGN – docisk/.test(x.grp)], ['SGN', 'stateczność', x => /^SGN – stateczność/.test(x.grp)], ['SGU', 'ugięcia', x => /ugięcia/.test(x.grp)], ['SGU', 'drgania', x => /drgania/.test(x.grp)], ['', 'słup i stopa', x => /^Słup/.test(x.grp)], ['', 'pożar', x => /^Pożar/.test(x.grp)], ['', 'konstrukcja', x => /^Konstrukcja/.test(x.grp)]];
 function dsumHTML() {
   if (!R || !R.checks) return '';
   if (R.errors && R.errors.length) return `<div class="dsum"><span class="dsb fail">✖ błąd danych – wyniki niedostępne</span></div>`;

@@ -62,7 +62,7 @@ function renderSection(el) {
   h += `<div class="flex">`;
   uniq.forEach((sg, k) => {
     const sec = sg.sec, sb = E.strengthBase(mt, sec), fd = R.fireData ? R.fireData.segs.find(q => q.seg.i === sg.i) : null;
-    h += `<div class="box"><h4>Przekrój ${md.segs.filter(q => q.sec.b === sec.b && q.sec.h === sec.h).map(q => esc(q.label)).join(', ')}</h4><div class="flex">${sectionSVG(sec, { id: 's' + k, glulam: /^GL/.test(mt.m.fam), fire: fd, fireTop: S.fire.sides === 4 })}
+    h += `<div class="box"><h4>Przekrój ${md.segs.filter(q => q.sec.b === sec.b && q.sec.h === sec.h).map(q => esc(q.label)).join(', ')} <button class="lnk" data-geo="${sg.i}">zmień…</button></h4><div class="flex"><div class="xclick secedit" data-geo="${sg.i}" title="Kliknij przekrój, aby zmienić wymiary, liczbę elementów i materiał">${sectionSVG(sec, { id: 's' + k, glulam: /^GL/.test(mt.m.fam), fire: fd, fireTop: S.fire.sides === 4 })}</div>
       <table class="kv"><tr><td>b × h</td><td>${S.geom.n > 1 ? S.geom.n + '×' : ''}${fmt(sec.b1, 0)} × ${fmt(sec.h, 0)}</td><td>mm</td></tr><tr><td>A</td><td>${fmt(sec.A / 100, 1)}</td><td>cm²</td></tr>
       <tr><td>I<sub>y</sub></td><td>${fmt(sec.Iy / 1e4, 0)}</td><td>cm⁴</td></tr><tr><td>W<sub>y</sub></td><td>${fmt(sec.Wy / 1e3, 1)}</td><td>cm³</td></tr><tr><td>I<sub>z</sub></td><td>${fmt(sec.Iz / 1e4, 0)}</td><td>cm⁴</td></tr><tr><td>W<sub>z</sub></td><td>${fmt(sec.Wz / 1e3, 1)}</td><td>cm³</td></tr>
       <tr><td>i<sub>y</sub> / i<sub>z</sub></td><td>${fmt(sec.iy, 1)} / ${fmt(sec.iz, 1)}</td><td>mm</td></tr><tr><td>I<sub>tor</sub> (β = ${fmt(sec.tc.beta, 3)})</td><td>${fmt(sec.It / 1e4, 0)}</td><td>cm⁴</td></tr><tr><td>W<sub>tor</sub> (α = ${fmt(sec.tc.alpha, 3)})</td><td>${fmt(sec.Wt / 1e3, 1)}</td><td>cm³</td></tr>
@@ -90,6 +90,7 @@ function renderSection(el) {
   h += `</table><p class="hint">σ<sub>m,crit</sub> = π·√(E<sub>0,05</sub>I<sub>z</sub>G<sub>0,05</sub>I<sub>tor</sub>)/(l<sub>ef</sub>W<sub>y</sub>) (6.31); λ<sub>rel,m</sub> = √(f<sub>m,k</sub>/σ<sub>m,crit</sub>); k<sub>crit</sub> wg (6.34). Wyboczenie ma znaczenie tylko przy ściskaniu osiowym.</p></div>`;
   el.innerHTML = h;
   $$('[data-ck]', el).forEach(c => { c.classList.add('xclick'); c.title = 'Kliknij – tok obliczeń'; c.addEventListener('click', () => { const ck = R.checks.find(q => q.id === c.dataset.ck); if (ck) explainPopup(ck); }); });
+  $$('[data-geo]', el).forEach(b => b.addEventListener('click', () => geoPopup(+b.dataset.geo)));
 }
 
 /* ------------------------------------------------------------- wykresy */
@@ -142,25 +143,65 @@ function serAt(se, x) {
   for (let i = 0; i < xs.length - 1; i++) if (x >= xs[i] - 1e-9 && x <= xs[i + 1] + 1e-9 && xs[i + 1] > xs[i]) return ys[i] + (ys[i + 1] - ys[i]) * (x - xs[i]) / (xs[i + 1] - xs[i]);
   return null;
 }
-function bindChartCursor(root) {
-  $$('svg.lchart', root).forEach(svg => {
-    const C = CHARTS[svg.dataset.cid]; if (!C) return;
-    const g = $('.cur', svg), hit = $('.hit', svg);
-    hit.addEventListener('mousemove', e => {
-      const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * C.W / r.width;
-      const x = C.xmin + (px - C.ml) / (C.W - C.ml - C.mr) * (C.xmax - C.xmin);
-      g.style.display = '';
-      $('.curl', g).setAttribute('x1', px); $('.curl', g).setAttribute('x2', px);
-      const vals = C.series.filter(se => se.l).map(se => { const v = serAt(se, x); return v === null ? '' : `${se.l}: ${fmt(v, C.dp)}`; }).filter(Boolean);
-      let d = ''; C.series.forEach(se => { const v = serAt(se, x); if (v !== null) d += `<circle cx="${px}" cy="${C.Y(v)}" r="2.5" fill="${se.c}"/>`; });
-      $('.curd', g).innerHTML = d;
-      const t = $('.curt', g); t.textContent = `x = ${fmt(x, 2)} m · ${vals.join(' · ')} ${C.unit}`;
-      const tw = t.getComputedTextLength ? t.getComputedTextLength() : 200;
-      const left = px + 8 + tw > C.W - 4 ? px - 8 - tw : px + 8;
-      t.setAttribute('x', left); const bg = $('.curbg', g); bg.setAttribute('x', left - 4); bg.setAttribute('width', tw + 8);
+// znaczniki na wykresach (LPM – dodaj / usuń w tym miejscu, PPM – usuń wszystkie): wspólne położenia x [m]
+const chartPins = [];
+function drawPins(svg) {
+  const C = CHARTS[svg.dataset.cid]; if (!C) return;
+  let g = svg.querySelector('g.pins'); if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.setAttribute('class', 'pins'); svg.insertBefore(g, svg.querySelector('g.cur')); }
+  let s = ''; const boxes = [];
+  chartPins.forEach(xm => {
+    if (xm < C.xmin - 1e-9 || xm > C.xmax + 1e-9) return;
+    const px = C.X(xm);
+    s += `<line x1="${px.toFixed(1)}" y1="${C.mt}" x2="${px.toFixed(1)}" y2="${C.H - C.mb}" stroke="#a35d00" stroke-width="0.8" stroke-dasharray="2 3"/>`;
+    const xt = `x = ${fmt(xm, 2)}`, xw = xt.length * 5.4 + 6;
+    s += `<rect x="${(px - xw / 2).toFixed(1)}" y="${C.H - C.mb - 12}" width="${xw.toFixed(1)}" height="12" rx="2" fill="#a35d00" fill-opacity="0.9"/>` + tx(px, C.H - C.mb - 3, xt, { fs: 9, c: '#ffffff', w: 600 });
+    const seen = [];
+    C.series.forEach(se => {
+      const v = serAt(se, xm); if (v === null || !isFinite(v) || seen.some(q => Math.abs(q - v) < 1e-6)) return; seen.push(v);
+      if (Math.abs(v) < 0.5 * Math.pow(10, -C.dp) && C.series.some(q => { const w = serAt(q, xm); return w !== null && Math.abs(w) >= 0.5 * Math.pow(10, -C.dp); })) return;
+      const py = C.Y(v), lab = fmt(v, C.dp), tw = lab.length * 5.8 + 4;
+      const cand = [[px, py - 6], [px, py + 13], [px + tw / 2 + 6, py + 3], [px - tw / 2 - 6, py + 3], [px, py - 17], [px, py + 24]];
+      const ok = cand.find(([x, y]) => !boxes.some(b => Math.abs(b[0] - x) < (tw + b[2]) / 2 && Math.abs(b[1] - y) < 11) && y > C.mt && y < C.H - C.mb - 12) || cand[0];
+      boxes.push([ok[0], ok[1], tw]);
+      s += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="${se.c}" stroke="#ffffff" stroke-width="0.8"/><rect x="${(ok[0] - tw / 2).toFixed(1)}" y="${(ok[1] - 9).toFixed(1)}" width="${tw.toFixed(1)}" height="11" rx="2" fill="#ffffff" fill-opacity="0.85"/>` + tx(ok[0], ok[1], lab, { fs: 10, c: se.c, w: 650 });
     });
-    hit.addEventListener('mouseleave', () => { g.style.display = 'none'; });
   });
+  g.innerHTML = s;
+}
+function bindChartCursor(root) {
+  const svgs = $$('svg.lchart', root);
+  const xOf = (svg, e) => { const C = CHARTS[svg.dataset.cid], r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * C.W / r.width; const x = C.xmin + (px - C.ml) / (C.W - C.ml - C.mr) * (C.xmax - C.xmin); return x < C.xmin - 1e-9 || x > C.xmax + 1e-9 ? null : x; };
+  const show = x => svgs.forEach(svg => {
+    const C = CHARTS[svg.dataset.cid]; if (!C) return;
+    const g = $('.cur', svg);
+    if (x === null) { g.style.display = 'none'; return; }
+    const px = C.X(x);
+    g.style.display = '';
+    $('.curl', g).setAttribute('x1', px); $('.curl', g).setAttribute('x2', px);
+    const vals = C.series.filter(se => se.l).map(se => { const v = serAt(se, x); return v === null ? '' : `${se.l}: ${fmt(v, C.dp)}`; }).filter(Boolean);
+    let d = ''; C.series.forEach(se => { const v = serAt(se, x); if (v !== null) d += `<circle cx="${px}" cy="${C.Y(v)}" r="2.5" fill="${se.c}"/>`; });
+    $('.curd', g).innerHTML = d;
+    const t = $('.curt', g); t.textContent = `x = ${fmt(x, 2)} m · ${vals.join(' · ')} ${C.unit}`;
+    const tw = t.getComputedTextLength ? t.getComputedTextLength() : 200;
+    const left = px + 8 + tw > C.W - 4 ? px - 8 - tw : px + 8;
+    t.setAttribute('x', left); const bg = $('.curbg', g); bg.setAttribute('x', left - 4); bg.setAttribute('width', tw + 8);
+  });
+  const updBar = () => { const b = $('#pinClr', root); if (b) b.style.display = chartPins.length ? '' : 'none'; };
+  svgs.forEach(svg => {
+    const C = CHARTS[svg.dataset.cid]; if (!C) return;
+    svg.style.cursor = 'crosshair';
+    svg.addEventListener('mousemove', e => show(xOf(svg, e)));
+    svg.addEventListener('mouseleave', () => show(null));
+    svg.addEventListener('click', e => {
+      const x = xOf(svg, e); if (x === null) return;
+      const tol = 7 * (C.xmax - C.xmin) / (C.W - C.ml - C.mr), j = chartPins.findIndex(v => Math.abs(v - x) <= tol);
+      if (j >= 0) chartPins.splice(j, 1); else { chartPins.push(+x.toFixed(3)); if (chartPins.length > 10) chartPins.shift(); }
+      svgs.forEach(drawPins); updBar();
+    });
+    svg.addEventListener('contextmenu', e => { e.preventDefault(); if (!chartPins.length) return; chartPins.length = 0; svgs.forEach(drawPins); updBar(); toast('Usunięto znaczniki z wykresów.', 1500); });
+  });
+  svgs.forEach(drawPins); updBar();
+  const pc = $('#pinClr', root); if (pc) pc.onclick = () => { chartPins.length = 0; svgs.forEach(drawPins); updBar(); };
 }
 function envSeries(env, k, stX, mul) {
   mul = mul || 1;
@@ -177,46 +218,53 @@ function extremeMarks(st, arrMx, arrMn, md, col, dp) {
   return marks;
 }
 let chartItems = false;
+let chartSel = (() => { try { return localStorage.getItem('belkadr-chart') || 'M'; } catch (e) { return 'M'; } })();
 function renderCharts(el) {
   const md = R.md, st = R.st, W = Math.max(640, Math.min(1400, (el.clientWidth || 1000) - 30));
+  Object.keys(CHARTS).forEach(k => delete CHARTS[k]);
   const vl = md.sups.map(p => ({ x: p.x, l: p.label }));
-  let h = `<p class="hint">Najedź kursorem na wykres – wartości w tym miejscu belki. Obwiednie SGN obejmują wszystkie kombinacje (PN-EN 1990) z obciążeniami zmiennymi tylko tam, gdzie działają niekorzystnie.</p>
-    <label class="chk"><input type="checkbox" id="chItems" ${chartItems ? 'checked' : ''}> Wykresy M i V od poszczególnych obciążeń (wartości charakterystyczne) zamiast obwiedni</label>`;
-  h += `<div class="box"><h4>Schemat obciążeń <small style="font-weight:400;color:var(--ink3)">wartości charakterystyczne; [Z] – poziomo, [⊥] – prostopadle do osi</small></h4>${schemeSVG(W)}</div>`;
-  h += `<div class="box" style="margin-top:12px"><h4>Reakcje podporowe</h4>${reactionsHTML()}</div>`;
+  const hasN = st.need.x || st.items.some(o => o.it.N);
+  const avail = [['M', 'M'], ['V', 'V'], ...(hasN ? [['N', 'N']] : []), ...(st.need.z ? [['Mz', 'M_z, V_z']] : []), ...(st.need.t ? [['T', 'T']] : []), ['w', 'ugięcia'], ['eta', 'wytężenie η'], ['R', 'reakcje'], ['comb', 'kombinacje'], ['all', 'wszystkie']];
+  if (!avail.some(a => a[0] === chartSel)) chartSel = 'M';
+  const on = k => chartSel === 'all' || chartSel === k;
+  let h = `<p class="hint">Najedź kursorem na wykres – wartości w tym miejscu belki. <b>Kliknij wykres</b> – znacznik: kropki i wartości w tym miejscu na wszystkich wykresach; kliknięcie przy znaczniku – usunięcie; <b>prawy przycisk</b> – usunięcie wszystkich znaczników. <button class="lnk" id="pinClr" style="display:none">usuń znaczniki</button></p>`;
+  h += `<div class="box"><h4>Schemat obciążeń <small style="font-weight:400;color:var(--ink3)">wartości charakterystyczne; [Z] – poziomo, [⊥] – prostopadle do osi; kliknij przęsło lub obciążenie, aby je zmienić</small></h4>${schemeSVG(W)}</div>`;
+  h += `<div class="chsw"><span class="segsw" role="tablist" aria-label="Wykres">${avail.map(([k, l]) => `<button data-chs="${k}" class="${chartSel === k ? 'on' : ''}">${l}</button>`).join('')}</span>${on('M') || on('V') ? `<label class="chk sm"><input type="checkbox" id="chItems" ${chartItems ? 'checked' : ''}> od poszczególnych obciążeń (char.) zamiast obwiedni</label>` : ''}</div>`;
   const ch = (o) => `<div class="box" style="margin-top:12px">${lineChart(Object.assign({ W, vl }, o))}</div>`;
   const x = Array.from(st.stX);
-  if (chartItems) {
+  if (on('R')) h += `<div class="box" style="margin-top:12px"><h4>Reakcje podporowe</h4>${reactionsHTML()}</div>`;
+  if (chartItems && (on('M') || on('V'))) {
     const cols = ['#4a5466', '#1d5bb8', '#0e8fa8', '#1d7f3c', '#6a3fb5', '#b5651d', '#c0262d', '#0b7285'];
     const ser = k => st.items.map((o, j) => { const a = new Float64Array(x.length); o.units.forEach(u => { for (let i = 0; i < a.length; i++) a[i] += u[k][i]; }); return { x, y: Array.from(a), c: cols[j % cols.length], l: o.key, w: 1.3 }; });
-    h += ch({ title: 'Momenty zginające M_y [kNm] od poszczególnych obciążeń (char.)', series: ser('My'), yl: 'M [kNm]', invert: true, unit: 'kNm' });
-    h += ch({ title: 'Siły poprzeczne V_y [kN] od poszczególnych obciążeń (char.)', series: ser('Vy'), yl: 'V [kN]', unit: 'kN' });
+    if (on('M')) h += ch({ title: 'Momenty zginające M_y [kNm] od poszczególnych obciążeń (char.)', series: ser('My'), yl: 'M [kNm]', invert: true, unit: 'kNm' });
+    if (on('V')) h += ch({ title: 'Siły poprzeczne V_y [kN] od poszczególnych obciążeń (char.)', series: ser('Vy'), yl: 'V [kN]', unit: 'kN' });
   } else {
-    const M = envSeries(R.env.uls, 'My', st.stX), Mk = envSeries(R.env.char, 'My', st.stX);
-    h += ch({ title: 'Momenty zginające M_y [kNm] – po stronie włókien rozciąganych', series: [{ x, y: M.mx, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed max' }, { x, y: M.mn, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed min' }, { x, y: Mk.mx, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k max' }, { x, y: Mk.mn, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k min' }], yl: 'M [kNm]', invert: true, unit: 'kNm', marks: extremeMarks(st, M.mx, M.mn, md, '#c0262d', 2) });
-    const V = envSeries(R.env.uls, 'Vy', st.stX);
-    h += ch({ title: 'Siły poprzeczne V_y [kN]', series: [{ x, y: V.mx, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed max' }, { x, y: V.mn, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed min' }], yl: 'V [kN]', unit: 'kN', marks: extremeMarks(st, V.mx, V.mn, md, '#1d5bb8', 2) });
+    if (on('M')) { const M = envSeries(R.env.uls, 'My', st.stX), Mk = envSeries(R.env.char, 'My', st.stX);
+      h += ch({ title: 'Momenty zginające M_y [kNm] – po stronie włókien rozciąganych', series: [{ x, y: M.mx, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed max' }, { x, y: M.mn, c: '#c0262d', fill: '#e6b3b3', l: 'M_Ed min' }, { x, y: Mk.mx, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k max' }, { x, y: Mk.mn, c: '#1d5bb8', dash: '5 3', w: 1.2, l: 'M_k min' }], yl: 'M [kNm]', invert: true, unit: 'kNm', H: 300, marks: extremeMarks(st, M.mx, M.mn, md, '#c0262d', 2) }); }
+    if (on('V')) { const V = envSeries(R.env.uls, 'Vy', st.stX);
+      h += ch({ title: 'Siły poprzeczne V_y [kN]', series: [{ x, y: V.mx, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed max' }, { x, y: V.mn, c: '#1d5bb8', fill: '#c9d4e6', l: 'V_Ed min' }], yl: 'V [kN]', unit: 'kN', H: 300, marks: extremeMarks(st, V.mx, V.mn, md, '#1d5bb8', 2) }); }
   }
-  if (st.need.z) {
+  if (on('Mz') && st.need.z) {
     const Mz = envSeries(R.env.uls, 'Mz', st.stX), Vz = envSeries(R.env.uls, 'Vz', st.stX);
     h += ch({ title: 'Momenty zginające M_z [kNm] (płaszczyzna pozioma)', series: [{ x, y: Mz.mx, c: '#6a3fb5', fill: '#b597ee', l: 'M_z,Ed max' }, { x, y: Mz.mn, c: '#6a3fb5', fill: '#b597ee', l: 'M_z,Ed min' }], yl: 'M_z [kNm]', invert: true, unit: 'kNm', marks: extremeMarks(st, Mz.mx, Mz.mn, md, '#6a3fb5', 2) });
     h += ch({ title: 'Siły poprzeczne V_z [kN]', series: [{ x, y: Vz.mx, c: '#6a3fb5', l: 'V_z,Ed max' }, { x, y: Vz.mn, c: '#6a3fb5', l: 'V_z,Ed min' }], yl: 'V_z [kN]', unit: 'kN' });
   }
-  if (st.need.x || st.items.some(o => o.it.N)) { const N = envSeries(R.env.uls, 'N', st.stX); h += ch({ title: 'Siła podłużna N [kN] (+ ściskanie)', series: [{ x, y: N.mx, c: '#6a3fb5', fill: '#b597ee', l: 'N_Ed max' }, { x, y: N.mn, c: '#6a3fb5', l: 'N_Ed min' }], yl: 'N [kN]', unit: 'kN', marks: extremeMarks(st, N.mx, N.mn, md, '#6a3fb5', 1) }); }
-  if (st.need.t) { const T = envSeries(R.env.uls, 'T', st.stX); h += ch({ title: 'Momenty skręcające T [kNm]', series: [{ x, y: T.mx, c: '#b5651d', fill: '#e6a35a', l: 'T_Ed max' }, { x, y: T.mn, c: '#b5651d', l: 'T_Ed min' }], yl: 'T [kNm]', unit: 'kNm', marks: extremeMarks(st, T.mx, T.mn, md, '#b5651d', 2) }); }
-  // ugięcia z granicami
-  const D = R.defl, w = k => Array.from(D[k], v => v * 1000);
-  const hseg = [];
-  md.segs.forEach(sg => { const sd = R.slsData[sg.i], lim = sd.lim; [[1, '#c0262d', 'w_net,fin'], [0, '#a35d00', 'w_inst']].forEach(([j, c, l]) => { if (S.sls.use[j] && lim[j] > 0) { const v = sd.Lmm / lim[j]; hseg.push({ x0: sg.x0, x1: sg.x1, y: v, c, l: j === 1 ? `${sd.cant ? 'l_w' : 'L'}/${lim[j]}` : '' }); } }); });
-  h += ch({ title: 'Ugięcia [mm] – względem podpór (przęsła: od cięciwy)', series: [{ x, y: w('instMx'), c: '#a35d00', l: 'w_inst' }, { x, y: w('finMx'), c: '#1d7f3c', fill: '#a6c76a', l: 'w_fin' }, { x, y: w('instMn'), c: '#a35d00', w: 1 }, { x, y: w('finMn'), c: '#1d7f3c', w: 1 }], yl: 'w [mm]', invert: true, unit: 'mm', dp: 1, hseg, marks: extremeMarks(st, w('finMx'), w('finMn'), md, '#1d7f3c', 1) });
-  if (R.deflZ) { const wz = k => Array.from(R.deflZ[k], v => v * 1000); h += ch({ title: 'Ugięcia poziome w_z [mm]', series: [{ x, y: wz('instMx'), c: '#a35d00', l: 'w_z,inst' }, { x, y: wz('finMx'), c: '#6a3fb5', l: 'w_z,fin' }, { x, y: wz('finMn'), c: '#6a3fb5', w: 1 }], yl: 'w_z [mm]', invert: true, unit: 'mm', dp: 1 }); }
-  // wytężenie
-  const eb = Array.from(R.eta.bend, v => v * 100), es = Array.from(R.eta.shear, v => v * 100), et = Array.from(R.eta.stab, v => v * 100);
-  h += ch({ title: 'Wytężenie wzdłuż belki η(x) [%] – SGN (obwiednia wszystkich kombinacji)', series: [{ x, y: eb, c: '#c0262d', l: 'zginanie', fill: '#e6b3b3' }, { x, y: et, c: '#a35d00', l: 'stateczność' }, { x, y: es, c: '#1d5bb8', l: 'ścinanie' }], hl: [{ y: 100, c: '#c0262d' }], yl: 'η [%]', unit: '%', dp: 0 });
-  h += `<div class="box" style="margin-top:12px"><h4>Kombinacje SGN (PN-EN 1990) i ich wyniki</h4>${combosHTML()}</div>`;
+  if (on('N') && hasN) { const N = envSeries(R.env.uls, 'N', st.stX); h += ch({ title: 'Siła podłużna N [kN] (+ ściskanie)', series: [{ x, y: N.mx, c: '#6a3fb5', fill: '#b597ee', l: 'N_Ed max' }, { x, y: N.mn, c: '#6a3fb5', l: 'N_Ed min' }], yl: 'N [kN]', unit: 'kN', H: 260, marks: extremeMarks(st, N.mx, N.mn, md, '#6a3fb5', 1) }); }
+  if (on('T') && st.need.t) { const T = envSeries(R.env.uls, 'T', st.stX); h += ch({ title: 'Momenty skręcające T [kNm]', series: [{ x, y: T.mx, c: '#b5651d', fill: '#e6a35a', l: 'T_Ed max' }, { x, y: T.mn, c: '#b5651d', l: 'T_Ed min' }], yl: 'T [kNm]', unit: 'kNm', H: 260, marks: extremeMarks(st, T.mx, T.mn, md, '#b5651d', 2) }); }
+  if (on('w')) {
+    const D = R.defl, w = k => Array.from(D[k], v => v * 1000);
+    const hseg = [];
+    md.segs.forEach(sg => { const sd = R.slsData[sg.i], lim = sd.lim; [[1, '#c0262d'], [0, '#a35d00']].forEach(([j, c]) => { if (S.sls.use[j] && lim[j] > 0) { const v = sd.Lmm / lim[j]; hseg.push({ x0: sg.x0, x1: sg.x1, y: v, c, l: `${sd.cant ? 'l_w' : 'L'}/${lim[j]}` }); } }); });
+    h += ch({ title: 'Ugięcia [mm] – względem podpór (przęsła: od cięciwy); linie przerywane – granice w_net,fin i w_inst', series: [{ x, y: w('instMx'), c: '#a35d00', l: 'w_inst' }, { x, y: w('finMx'), c: '#1d7f3c', fill: '#a6c76a', l: 'w_fin' }, { x, y: w('instMn'), c: '#a35d00', w: 1 }, { x, y: w('finMn'), c: '#1d7f3c', w: 1 }], yl: 'w [mm]', invert: true, unit: 'mm', dp: 1, H: 300, hseg, marks: extremeMarks(st, w('finMx'), w('finMn'), md, '#1d7f3c', 1) });
+    if (R.deflZ) { const wz = k => Array.from(R.deflZ[k], v => v * 1000); h += ch({ title: 'Ugięcia poziome w_z [mm]', series: [{ x, y: wz('instMx'), c: '#a35d00', l: 'w_z,inst' }, { x, y: wz('finMx'), c: '#6a3fb5', l: 'w_z,fin' }, { x, y: wz('finMn'), c: '#6a3fb5', w: 1 }], yl: 'w_z [mm]', invert: true, unit: 'mm', dp: 1 }); }
+  }
+  if (on('eta')) { const eb = Array.from(R.eta.bend, v => v * 100), es = Array.from(R.eta.shear, v => v * 100), et = Array.from(R.eta.stab, v => v * 100);
+    h += ch({ title: 'Wytężenie wzdłuż belki η(x) [%] – SGN (obwiednia wszystkich kombinacji)', series: [{ x, y: eb, c: '#c0262d', l: 'zginanie', fill: '#e6b3b3' }, { x, y: et, c: '#a35d00', l: 'stateczność' }, { x, y: es, c: '#1d5bb8', l: 'ścinanie' }], hseg: [{ x0: 0, x1: md.Ltot, y: 100, c: '#c0262d', l: '100%' }], yl: 'η [%]', unit: '%', dp: 0, H: 300 }); }
+  if (on('comb')) h += `<div class="box" style="margin-top:12px"><h4>Kombinacje SGN (PN-EN 1990) i ich wyniki</h4>${combosHTML()}</div>`;
   el.innerHTML = h;
   bindChartCursor(el);
-  $('#chItems', el).onchange = e => { chartItems = e.target.checked; rendered.chart = false; renderActive(); };
+  const ci = $('#chItems', el); if (ci) ci.onchange = e => { chartItems = e.target.checked; rendered.chart = false; renderActive(); };
+  $$('[data-chs]', el).forEach(b => b.addEventListener('click', () => { chartSel = b.dataset.chs; try { localStorage.setItem('belkadr-chart', chartSel); } catch (e) { /* */ } rendered.chart = false; renderActive(); }));
   bindScheme(el);
 }
 function reactionsHTML() {
@@ -240,53 +288,6 @@ function combosHTML() {
 }
 
 /* ----------------------------------------------- zakładka Belka i podpory (rysunek) */
-function elevationSVG(W, o) {
-  o = o || {};
-  const md = R.md, ext0 = md.extL, ext1 = md.extR, Lm = md.Lmember;
-  const ml = 40, mr = 40, sx = (W - ml - mr) / Lm;
-  const hmax = Math.max(...md.segs.map(s => s.h));
-  const vs = Math.min(Math.max(sx, 70 / hmax * 1000), 160 / hmax * 1000);       // skala pionowa (przewyższenie dla czytelności)
-  const X = x => ml + (x + ext0) * sx, Hh = h => h / 1000 * vs;
-  const yTop = 40, H = yTop + Hh(hmax) + 120;
-  let s = svgOpen(W, H, 'class="elev"');
-  // belka – zarys z podcięciami
-  md.segs.forEach(sg => {
-    let xa = X(sg.x0), xb = X(sg.x1);
-    if (sg.i === 0) xa -= ext0 * sx; if (sg.i === md.segs.length - 1) xb += ext1 * sx;
-    const yb = yTop + Hh(hmax);
-    s += `<rect x="${xa}" y="${yb - Hh(sg.h)}" width="${xb - xa}" height="${Hh(sg.h)}" fill="${WOOD}" stroke="${WOODE}" stroke-width="1.2"/>`;
-    for (let k = 1; k < 4; k++) s += `<line x1="${xa + 2}" y1="${yb - Hh(sg.h) * k / 4}" x2="${xb - 2}" y2="${yb - Hh(sg.h) * k / 4 + (k % 2 ? 1.5 : -1.5)}" stroke="${WOODG}" stroke-width="0.6" opacity="0.7"/>`;
-  });
-  const yb = yTop + Hh(hmax);
-  // podpory: podkładki o długości t, podcięcia
-  md.sups.forEach(p => {
-    const xx = X(p.x), tw = p.t / 1000 * sx;
-    s += `<rect x="${xx - tw / 2}" y="${yb}" width="${Math.max(tw, 2)}" height="12" fill="#cfd4db" stroke="#39414f" stroke-width="0.9"/>`;
-    for (let k = xx - tw / 2; k < xx + tw / 2 - 1; k += 5) s += `<line x1="${k}" y1="${yb + 12}" x2="${k + 4}" y2="${yb + 17}" stroke="#39414f" stroke-width="0.6"/>`;
-    s += tx(xx, yb + 30, esc(p.label), { fs: 11, w: 650, c: '#3d4656' });
-    if (p.notch && p.notch.on) {
-      const sg = p.segR || p.segL, h = sg.h, hef = p.notch.hef > 0 ? Math.min(p.notch.hef, h) : h, dh = Hh(h - hef), dir = p.segR ? 1 : -1;
-      const xe = p.segR ? X(p.x) - (p.i === 0 ? ext0 * sx : 0) : X(p.x) + (p.i === md.sups.length - 1 ? ext1 * sx : 0);
-      const xc = xx + dir * (p.notch.x > 0 ? p.notch.x / 1000 * sx : tw / 2);
-      if (p.notch.side === 'top') s += `<rect x="${Math.min(xe, xc)}" y="${yb - Hh(h)}" width="${Math.abs(xc - xe)}" height="${dh}" fill="#ffffff" stroke="#c0262d" stroke-width="1"/>`;
-      else s += `<rect x="${Math.min(xe, xc)}" y="${yb - dh}" width="${Math.abs(xc - xe)}" height="${dh}" fill="#ffffff" stroke="#c0262d" stroke-width="1"/>`;
-    }
-  });
-  // stężenia krawędzi górnej
-  if (S.ltb.on && S.ltb.top > 0) md.segs.forEach(sg => { for (let x = sg.x0 + S.ltb.top; x < sg.x1 - 1e-6; x += S.ltb.top) s += `<path d="M${X(x) - 4},${yTop - 12} l4,8 l4,-8" fill="none" stroke="#1d7f3c" stroke-width="1.2"/>`; });
-  if (S.ltb.on && S.ltb.top === 0) s += `<line x1="${X(0)}" y1="${yTop - 6}" x2="${X(md.Ltot)}" y2="${yTop - 6}" stroke="#1d7f3c" stroke-width="2" stroke-dasharray="2 2"/>` + tx(X(md.Ltot / 2), yTop - 10, 'krawędź górna stężona w sposób ciągły', { fs: 9.5, c: '#1d7f3c' });
-  // przeguby
-  S.nodes.forEach(n => { const sg = md.segs[n.seg]; if (!sg || !n.hinge) return; const xx = X(sg.x0 + n.a); s += `<line x1="${xx}" y1="${yb - Hh(sg.h)}" x2="${xx}" y2="${yb}" stroke="#c0262d" stroke-width="1.2" stroke-dasharray="3 2"/><circle cx="${xx}" cy="${yb - Hh(sg.h) / 2}" r="3.5" fill="#ffffff" stroke="#c0262d"/>`; });
-  // wymiary
-  let y = yb + 50;
-  md.segs.forEach(sg => { s += dimH(X(sg.x0), X(sg.x1), y, fmt(sg.L * 1000, 0)); });
-  y += 28;
-  s += dimH(X(-ext0), X(md.Ltot + ext1), y, `długość elementu ${fmt(Lm * 1000, 0)} mm`);
-  s += dimV(ml - 18, yb - Hh(md.segs[0].h), yb, fmt(md.segs[0].h, 0));
-  if (S.geom.beta) s += tx(W - mr, 14, `oś belki nachylona β = ${fmt(S.geom.beta, 1)}° (rysunek w rozwinięciu)`, { a: 'end', fs: 10, c: '#5b6576' });
-  s += tx(ml, 14, 'Widok belki (skala pionowa powiększona dla czytelności)', { a: 'start', fs: 10, c: '#5b6576' });
-  return s + '</svg>';
-}
 function supTableHTML() {
   let h = `<table class="reqt"><tr><th>Podpora</th><th>rodzaj</th><th>t [mm]</th><th>l<sub>ef</sub> [mm]</th><th>k<sub>c,90</sub></th><th>F<sub>c,90,d</sub> [kN]</th><th>σ<sub>c,90,d</sub> [MPa]</th><th>k<sub>c,90</sub>·f<sub>c,90,d</sub></th><th>η</th><th>podcięcie</th></tr>`;
   R.supData.forEach(sd => {
@@ -314,17 +315,6 @@ function scheduleHTML() {
   h += `<p class="hint">Masa z gęstości średniej ρ<sub>mean</sub> = ${fmt(mt.m.rhom, 0)} kg/m³ (bez naddatków na obróbkę i odpad). Długość elementu obejmuje oparcia na podporach skrajnych (t/2 + wysunięcie a).</p>`;
   return h;
 }
-function renderElevation(el) {
-  const W = Math.max(640, Math.min(1400, (el.clientWidth || 1000) - 30));
-  let h = `<div class="etools"><span class="h2" style="margin:0">Belka – widok, podpory i zestawienie materiału</span><span class="sp"></span><button class="btn" id="bDxf">Rysunek DXF…</button></div>`;
-  h += `<div class="box elevbox">${elevationSVG(W)}</div>`;
-  h += `<div class="box" style="margin-top:12px"><h4>Podpory – docisk (6.1.5) i podcięcia (6.5.2)</h4>${supTableHTML()}<p class="hint">Kliknij podporę na schemacie w zakładce Dane, aby zmienić długość oparcia, rodzaj podparcia lub podcięcie.</p></div>`;
-  if (R.ptBear && R.ptBear.length) h += `<div class="box" style="margin-top:12px"><h4>Docisk pod siłami skupionymi</h4><table class="reqt"><tr><th>Siła</th><th>x [m]</th><th>F<sub>d</sub> [kN]</th><th>l<sub>ef</sub> [mm]</th><th>σ<sub>c,90,d</sub></th><th>k<sub>c,90</sub>·f<sub>c,90,d</sub></th></tr>${R.ptBear.map(q => `<tr><td>${esc(q.o.key)}</td><td>${fmt(q.q.x, 2)}</td><td>${fmt(q.F, 2)}</td><td>${fmt(q.lef, 0)}</td><td>${fmt(q.s, 2)}</td><td>${fmt(q.kc * q.fd, 2)}</td></tr>`).join('')}</table></div>`;
-  h += `<div class="box" style="margin-top:12px"><h4>Zestawienie drewna</h4>${scheduleHTML()}</div>`;
-  el.innerHTML = h;
-  $('#bDxf', el).onclick = exportDXF;
-}
-
 /* ------------------------------------------------------------ podsumowanie */
 const CHECK_DP = { kNm: 2, kN: 2, mm: 1, MPa: 2, '': 3, Hz: 2, 'mm/kN': 2 };
 function ckVal(c, v) { const dp = typeof c.fmt === 'number' ? c.fmt : (CHECK_DP[c.unit] ?? 2); return fmt(v, dp); }
@@ -362,21 +352,21 @@ function renderSummary(el) {
   if (nF) html += `<div class="failnav">Niespełnione warunki: ${c.map((x, i) => x.status === 'fail' ? `<button class="goto" data-goto="${i}">${sym(x.name)}</button>` : '').join('')}</div>`;
   const ticks = S.meta.ticks || {};
   const nT = c.filter(x => ticks[x.id]).length;
-  html += `<div class="tickbar"><span id="tickCnt">Odhaczono: <b>${nT}</b> z ${c.length}</span><button class="btn sm" id="tickOk">Odhacz spełnione</button><button class="btn sm" id="tickClr">Wyczyść znaczniki</button><span class="hint">Raport obejmuje sprawdzenia odhaczone. Kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń.</span></div>`;
+  html += `<div class="tickbar"><span id="tickCnt">Odhaczono: <b>${nT}</b> z ${c.length}</span><button class="btn sm" id="tickOk" title="Przywróć automatyczne odhaczanie: spełnione – zaznaczone, niespełnione – odznaczone">Odhacz automatycznie</button><button class="btn sm" id="tickClr">Wyczyść znaczniki</button><span class="hint">Spełnione warunki są odhaczane automatycznie, niespełnione – odznaczane (także po każdej zmianie danych). Raport obejmuje sprawdzenia odhaczone. Kliknij numer punktu normy lub wartość – objaśnienie i tok obliczeń.</span></div>`;
   html += `<div class="tscroll"><table class="ctab"><thead><tr><th class="tk" title="Sprawdzone">✓</th><th>Sprawdzenie</th><th>PN-EN 1995</th><th style="text-align:right">Warunek</th><th>Wykorzystanie</th><th>Status</th><th class="nt">Kombinacja / uwagi</th></tr></thead><tbody>`;
   let grp = '';
   c.forEach((x, i) => {
     if (x.grp !== grp) { grp = x.grp; html += `<tr class="g"><td colspan="7">${esc(grp)}</td></tr>`; }
     const on = !!ticks[x.id];
-    html += `<tr class="${on ? 'done' : ''}" data-ci="${i}"><td class="tk"><input type="checkbox" data-tick="${i}" ${on ? 'checked' : ''} aria-label="sprawdzone"></td><td>${sym(x.name)}</td><td class="ref">${x.ref ? `<button class="nlink" data-nref="${esc(x.ref)}" data-grp="${esc(x.grp)}">${esc(x.ref)}</button>` : ''}</td><td class="val">${ckCond(x)}</td><td class="bar" style="white-space:nowrap">${utilBar(x)}</td><td class="stc"><span class="st ${x.status}">${STL[x.status]}</span></td><td class="nt">${esc(x.combo || '')}${x.note ? (x.combo ? '; ' : '') + esc(x.note) : ''}${x.d ? ` <button class="lnk" data-exp="${i}">▸ Objaśnienie</button>` : ''}</td></tr>`;
+    html += `<tr class="${on ? 'done' : ''}" data-ci="${i}"><td class="tk"><input type="checkbox" data-tick="${i}" ${on ? 'checked' : ''} aria-label="sprawdzone"></td><td>${sym(x.name)}</td><td class="ref">${x.ref ? `<button class="nlink" data-nref="${esc(x.ref)}" data-grp="${esc(x.grp)}">${esc(x.ref)}</button>` : ''}</td><td class="val">${ckCond(x)}</td><td class="bar" style="white-space:nowrap">${utilBar(x)}</td><td class="stc"><span class="st ${x.status}">${STL[x.status]}</span>${x.status === 'fail' || x.status === 'warn' ? `<button class="goto" data-goto="${i}" title="Przejdź do miejsca, którego dotyczy warunek">pokaż →</button>` : ''}</td><td class="nt">${esc(x.combo || '')}${x.note ? (x.combo ? '; ' : '') + esc(x.note) : ''}${x.d ? ` <button class="lnk" data-exp="${i}">▸ Objaśnienie</button>` : ''}</td></tr>`;
   });
   html += `</tbody></table></div>`;
   el.innerHTML = html;
   const upd = () => { const n = c.filter(x => (S.meta.ticks || {})[x.id]).length; $('#tickCnt', el).innerHTML = `Odhaczono: <b>${n}</b> z ${c.length}`; };
-  const setTick = (x, v) => { S.meta.ticks = S.meta.ticks || {}; if (v) S.meta.ticks[x.id] = true; else delete S.meta.ticks[x.id]; };
+  const setTick = (x, v) => { S.meta.tickMan = S.meta.tickMan || {}; S.meta.tickMan[x.id] = v; syncTicks(); };
   $$('[data-tick]', el).forEach(cb => cb.addEventListener('change', () => { const x = c[+cb.dataset.tick]; setTick(x, cb.checked); cb.closest('tr').classList.toggle('done', cb.checked); upd(); dirty = true; updateTitle(); autosave(); rendered.report = false; }));
-  $('#tickOk', el).onclick = () => { c.forEach(x => { if (x.status === 'ok' || x.status === 'info') setTick(x, true); }); dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
-  $('#tickClr', el).onclick = () => { S.meta.ticks = {}; dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
+  $('#tickOk', el).onclick = () => { S.meta.tickMan = {}; syncTicks(); dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
+  $('#tickClr', el).onclick = () => { S.meta.tickMan = {}; c.forEach(x => { S.meta.tickMan[x.id] = false; }); syncTicks(); dirty = true; updateTitle(); autosave(); rendered.report = false; renderSummary(el); };
   $$('[data-exp]', el).forEach(b => b.addEventListener('click', () => explainPopup(c[+b.dataset.exp])));
   $$('tr[data-ci] td.val, tr[data-ci] td.bar', el).forEach(td => { const x = c[+td.closest('tr').dataset.ci]; if (!x.d) return; td.classList.add('xclick'); td.title = 'Kliknij – jak obliczono'; td.addEventListener('click', () => explainPopup(x)); });
   $$('[data-cki]', el).forEach(cd => { cd.classList.add('xclick'); cd.addEventListener('click', () => explainPopup(c[+cd.dataset.cki])); });
@@ -384,7 +374,9 @@ function renderSummary(el) {
 }
 // przejście do miejsca, którego dotyczy warunek (pole formularza / podpora)
 function gotoCheck(c) {
+  if (c.col !== undefined) { U.selectTab('data'); setTimeout(() => colPopup(c.col), 60); return; }
   if (c.sup !== undefined && /^(bear|notch|upl)/.test(c.id)) { U.selectTab('data'); setTimeout(() => supportPopup(c.sup), 60); return; }
+  if (/^(bend|shear|tor|comp|tens|fi)/.test(c.id) && c.seg !== undefined) { U.selectTab('data'); setTimeout(() => secWinPopup([c.seg]), 60); return; }
   const fld = /^w/.test(c.id) ? 'sls.lim' : /^ltb/.test(c.id) ? 'ltb.top' : /^vib/.test(c.id) ? 'sls.vib.s' : /^fi/.test(c.id) ? 'fire.R' : 'geom.h';
   U.selectTab('data');
   setTimeout(() => {
