@@ -1,0 +1,36 @@
+/* ===== BelkaDR – uzupełnienia stylów (belki drewniane) ===== */
+/* kolory drewna na rysunkach – tryb jasny / ciemny */
+:root { --sv-ead7b7: #ead7b7; --sv-c89b62: #c89b62; --sv-8a5a2b: #8a5a2b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sv-ead7b7: #4b3a26; --sv-c89b62: #8d6c45; --sv-8a5a2b: #d0a46c; } }
+:root[data-theme="dark"] { --sv-ead7b7: #4b3a26; --sv-c89b62: #8d6c45; --sv-8a5a2b: #d0a46c; }
+#report { --sv-ead7b7: #ead7b7; --sv-c89b62: #c89b62; --sv-8a5a2b: #8a5a2b; }
+@media print { :root:not([data-print]) { --sv-ead7b7: #ead7b7; --sv-c89b62: #c89b62; --sv-8a5a2b: #8a5a2b; } }
+/* listy obciążeń */
+.litem.off { opacity: .55; }
+.litem .lrow .chk.sm { margin-left: 2px; }
+details.lmore { margin: 3px 0 1px; }
+details.lmore > summary { cursor: pointer; color: var(--acc); font-size: 11.5px; list-style: none; display: inline-flex; align-items: center; gap: 4px; user-select: none; }
+details.lmore > summary::-webkit-details-marker { display: none; }
+details.lmore > summary::before { content: "▸"; font-size: 10px; transition: transform .15s; }
+details.lmore[open] > summary::before { transform: rotate(90deg); }
+.litem .ec1t { color: var(--ink2); font-size: 11.5px; }
+.lrow .lx { margin-left: 4px; }
+/* przełącznik wykresu pod schematem */
+.dgwrap { display: flex; justify-content: center; margin: 4px 0 2px; }
+/* przekroje decydujące */
+.swcard.xclick:hover { border-color: var(--acc); }
+.minisecs .swcard { flex: 0 1 300px; }
+.secsvg { max-width: 100%; height: auto; }
+/* tabela wytrzymałości – klasy nieużywane */
+table.reqt tr.rare td { color: var(--ink3); }
+table.reqt td.no { color: var(--fail); font-weight: 700; } table.reqt td.yes { color: var(--ok); font-weight: 700; }
+/* objaśnienia normy */
+.nexp h3 { font-size: 14px; margin: 12px 0 6px; }
+.nexp p { font-size: 13px; color: var(--ink2); }
+.nexp .eq { background: var(--panel2); border-radius: 4px; padding: 6px 10px; line-height: 1.6; }
+/* tabele w raporcie */
+:is(#report, #ownrep) table.sched { min-width: 0; margin: 6px 0 10px; }
+:is(#report, #ownrep) table.reqt { margin: 6px 0; }
+:is(#report, #ownrep) .eq .r { color: #333; }
+.rtools .sp { flex: 1; }
+@media (max-width: 900px) { .minisecs .swcard { flex: 1 1 100%; } }

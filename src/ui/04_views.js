@@ -33,7 +33,7 @@ function sectionSVG(sec, o) {
 // rozkład naprężeń normalnych (σ_m) i stycznych (τ) – mały wykres przy przekroju
 function stressSVG(sec, sig, tau, o) {
   o = o || {};
-  const h = sec.h, sc = Math.min(160 / h, 1.2), H = h * sc + 40, W = 220, y0 = 20, xs = 60, xt = 165;
+  const h = sec.h, sc = Math.min(160 / h, 1.2), H = h * sc + 40, W = 250, y0 = 20, xs = 85, xt = 190;
   let s = svgOpen(W, H);
   s += `<line x1="${xs}" y1="${y0}" x2="${xs}" y2="${y0 + h * sc}" stroke="#39414f"/><line x1="${xt}" y1="${y0}" x2="${xt}" y2="${y0 + h * sc}" stroke="#39414f"/>`;
   const a = 40;
@@ -104,7 +104,7 @@ function niceTicks(a, b, n) {
 }
 function lineChart(o) {
   const W = o.W || 820, H = o.H || 230, ml = 58, mr = 120, mt = 38, mb = 34;
-  const xs = o.series.flatMap(s => s.x), ys = o.series.flatMap(s => s.y.filter(isFinite)).concat((o.hl || []).map(h => h.y)).concat([0]);
+  const xs = o.series.flatMap(s => Array.from(s.x)), ys = o.series.flatMap(s => Array.from(s.y).filter(isFinite)).concat((o.hl || []).map(h => h.y)).concat([0]);
   const xmin = Math.min(...xs), xmax = Math.max(...xs);
   let ymin = Math.min(...ys), ymax = Math.max(...ys);
   if (ymax - ymin < 1e-9) { ymax += 1; ymin -= 1; }
@@ -211,7 +211,7 @@ function renderCharts(el) {
   h += ch({ title: 'Ugięcia [mm] – względem podpór (przęsła: od cięciwy)', series: [{ x, y: w('instMx'), c: '#a35d00', l: 'w_inst' }, { x, y: w('finMx'), c: '#1d7f3c', fill: '#a6c76a', l: 'w_fin' }, { x, y: w('instMn'), c: '#a35d00', w: 1 }, { x, y: w('finMn'), c: '#1d7f3c', w: 1 }], yl: 'w [mm]', invert: true, unit: 'mm', dp: 1, hseg, marks: extremeMarks(st, w('finMx'), w('finMn'), md, '#1d7f3c', 1) });
   if (R.deflZ) { const wz = k => Array.from(R.deflZ[k], v => v * 1000); h += ch({ title: 'Ugięcia poziome w_z [mm]', series: [{ x, y: wz('instMx'), c: '#a35d00', l: 'w_z,inst' }, { x, y: wz('finMx'), c: '#6a3fb5', l: 'w_z,fin' }, { x, y: wz('finMn'), c: '#6a3fb5', w: 1 }], yl: 'w_z [mm]', invert: true, unit: 'mm', dp: 1 }); }
   // wytężenie
-  const eb = st.stX.map((_, i) => R.eta.bend[i] * 100), es = st.stX.map((_, i) => R.eta.shear[i] * 100), et = st.stX.map((_, i) => R.eta.stab[i] * 100);
+  const eb = Array.from(R.eta.bend, v => v * 100), es = Array.from(R.eta.shear, v => v * 100), et = Array.from(R.eta.stab, v => v * 100);
   h += ch({ title: 'Wytężenie wzdłuż belki η(x) [%] – SGN (obwiednia wszystkich kombinacji)', series: [{ x, y: eb, c: '#c0262d', l: 'zginanie', fill: '#e6b3b3' }, { x, y: et, c: '#a35d00', l: 'stateczność' }, { x, y: es, c: '#1d5bb8', l: 'ścinanie' }], hl: [{ y: 100, c: '#c0262d' }], yl: 'η [%]', unit: '%', dp: 0 });
   h += `<div class="box" style="margin-top:12px"><h4>Kombinacje SGN (PN-EN 1990) i ich wyniki</h4>${combosHTML()}</div>`;
   el.innerHTML = h;

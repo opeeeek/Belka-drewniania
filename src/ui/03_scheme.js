@@ -38,7 +38,7 @@ function loadRows(md) {
   }
   allItems().forEach(([arr, i, it]) => {
     if (it.off) return;
-    const rg = E.itemRange(it, md), q2 = it.q2 === '' ? it.q : it.q2;
+    const rg = E.itemRange(it, md), q2 = it.q2 === '' || it.q2 == null ? it.q : it.q2;
     const dist = (it.q || q2) && rg.xb > rg.xa ? [{ x1: rg.xa, x2: rg.xb, q1: it.q, q2 }] : [];
     const pts = (it.pts || []).filter(p => p.P).map(p => ({ x: E.ptX(p, rg), P: p.P }));
     if (!dist.length && !pts.length && !it.mt && !it.N) return;
@@ -178,7 +178,7 @@ function renderDataSide() {
   el.innerHTML = `<div class="box">${beamTabsHTML()}<h4 class="schhd">Schemat statyczny i obciążenia</h4>
     <p class="hint">Kliknij przęsło (obciążenia, przekrój, węzły i przeguby), podporę (rodzaj, oparcie, podcięcie) albo obciążenie (edycja).</p>
     <div class="schemewrap">${sch}</div>
-    <div class="segsw sm dgsw" style="margin:4px auto 2px;display:flex;justify-content:center">${kinds.map(([k, l]) => `<button data-dk="${k}" class="${k === diagKind ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div class="dgwrap"><div class="segsw sm">${kinds.map(([k, l]) => `<button data-dk="${k}" class="${k === diagKind ? 'on' : ''}">${l}</button>`).join('')}</div></div>
     ${diagKind ? `<div class="schemewrap">${diagSVG(W, diagKind)}</div>` : ''}
     ${combSumHTML()}</div>
     <div class="box"><h4>Zestawienie obciążeń</h4>${loadSummaryHTML()}</div>`;
@@ -223,7 +223,7 @@ function supportPopup(k) {
     $$('input[name=sp]', m).forEach(r => r.addEventListener('change', () => { c.dof = Object.assign({}, E.SUP_DOF[r.value]); draw(); }));
     $$('[data-dof]', m).forEach(cb => cb.addEventListener('change', () => { c.dof[cb.dataset.dof] = cb.checked; draw(); }));
     $$('[data-c]', m).forEach(inp => inp.addEventListener('change', () => { const f = inp.dataset.c; if (f === 'direct') { c.direct = inp.checked; return; } const v = inp.value.trim() === '' ? '' : parseNum(inp.value); if (v === null || (v !== '' && v < 0)) { inp.classList.add('bad'); return; } inp.classList.remove('bad'); c[f] = v; }));
-    $$('[data-n]', m).forEach(inp => inp.addEventListener('change', () => { const f = inp.dataset.n; if (f === 'on') { c.notch.on = inp.checked; draw(); return; } if (f === 'side') { c.notch.side = inp.value; draw(); return; } const v = inp.value.trim() === '' ? '' : parseNum(inp.value); if (v === null || (v !== '' && v < 0)) { inp.classList.add('bad'); return; } inp.classList.remove('bad'); c.notch[f] = v; draw(); }));
+    $$('[data-n]', m).forEach(inp => inp.addEventListener('change', () => { const f = inp.dataset.n; if (f === 'on') { c.notch.on = inp.checked; if (c.notch.on && !(c.notch.hef > 0)) c.notch.hef = Math.round(Math.max(...[p.segL, p.segR].filter(Boolean).map(s => s.h)) * 0.75 / 5) * 5; if (c.notch.on && c.notch.x === '') c.notch.x = Math.round(p.t / 2); draw(); return; } if (f === 'side') { c.notch.side = inp.value; draw(); return; } const v = inp.value.trim() === '' ? '' : parseNum(inp.value); if (v === null || (v !== '' && v < 0)) { inp.classList.add('bad'); return; } inp.classList.remove('bad'); c.notch[f] = v; draw(); }));
     $$('[data-a]', m).forEach(b => b.addEventListener('click', () => {
       const a = b.dataset.a;
       if (a === 'x') { m.style.display = 'none'; return; }

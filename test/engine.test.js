@@ -12,7 +12,7 @@ const near = (a, b, tol, msg) => {
 const truthy = (v, msg) => { n++; if (!v) { bad++; console.log('✖ ' + msg); } else console.log('✔ ' + msg); };
 const base = () => {
   const S = E.defaultState();
-  S.loads.perm = []; S.loads.var = []; S.loads.sw = false;
+  S.loads.perm = []; S.loads.var = []; S.loads.sw = false; S.geom.b = 100; S.geom.h = 200;
   return S;
 };
 const maxAbs = a => Math.max(...Array.from(a).map(Math.abs));

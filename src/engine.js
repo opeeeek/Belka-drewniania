@@ -193,7 +193,7 @@ function defaultState() {
   return {
     meta: { name: 'Belka D-1', author: '', note: '', ticks: {}, repMode: 'full', own: '', ownOn: false },
     scheme: 'ss',
-    geom: { L: 4.5, b: 100, h: 200, n: 1, beta: 0, alpha: 0, t: 120 },
+    geom: { L: 4.5, b: 100, h: 225, n: 1, beta: 0, alpha: 0, t: 120 },
     mat: { cls: 'C24', user: null, lock: false },
     env: { sc: 1, wet: false },
     loads: {
@@ -1128,7 +1128,7 @@ function supChecks(R) {
       });
       o.bear = best;
       C.push(mkCheck({ id: `bear${k}`, grp: 'SGN – docisk i podcięcia', name: `Docisk w podporze ${p.label} σ_{c,90,d} ≤ k_{c,90}·f_{c,90,d}`, ref: '6.1.5', sup: k, ratio: best.ratio, Ed: best.s, Rd: kc.k * best.fd, unit: 'MPa', d: Object.assign({ bl, kc }, best), combo: `${best.c.eq}, k_mod = ${fmtN(best.c.kmod)}`,
-        note: `l_ef = ${Math.round(bl.lef)} mm, F = ${fmtN(Math.round(best.F * 10) / 10)} kN; wymagana długość oparcia t ≥ ${Math.max(0, Math.ceil(best.F * 1e3 / (sec.b * kc.k * best.fd) - bl.eL - bl.eR))} mm` }));
+        note: `l_ef = ${Math.round(bl.lef)} mm, F = ${fmtN(Math.round(best.F * 10) / 10)} kN; t_min z docisku = ${Math.max(0, Math.ceil(best.F * 1e3 / (sec.b * kc.k * best.fd) - bl.eL - bl.eR))} mm` }));
       const up = Math.min(...ulsAll.map(c => c.reac[k].mn));
       if (up < -0.05) { o.uplift = up; C.push(mkCheck({ id: `upl${k}`, grp: 'SGN – docisk i podcięcia', name: `Reakcja odrywająca w podporze ${p.label}: R_{Ed,min} = ${fmtN(Math.round(up * 10) / 10)} kN – wymagane zakotwienie belki (łącznik)`, ref: '6.1.5', sup: k, ratio: NaN, status: 'warn', Ed: up, unit: 'kN' })); }
     }

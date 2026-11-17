@@ -341,7 +341,7 @@ table.ctab tr.done td:not(.tk):not(.stc) { color: var(--ink2); }
 .dlg.norm .ndisc { font-size: 11px !important; color: var(--ink3) !important; margin-top: 12px; }
 .box h4 small { font-weight: 500; color: var(--ink3); }
 /* wydruk: brak nagłówka i stopki przeglądarki (margines strony 0), marginesy z tabeli-ramki powtarzanej na każdej stronie */
-.pwrap, .pwrap > thead, .pwrap > tbody, .pwrap > tfoot, .pwrap tr, .pwrap td.pbody { display: block; }
+.pwrap, .pwrap > thead, .pwrap > tbody, .pwrap > tfoot, .pwrap > * > tr, .pwrap > * > tr > td.pbody { display: block; }
 .pwrap > thead, .pwrap > tfoot { display: none; }
 .pwrap td.pbody { padding: 0; }
 
@@ -362,7 +362,7 @@ table.exptab td:first-child { white-space: nowrap; }
   @page { size: A4; margin: 0; }
   .pwrap { display: table; width: 100%; border-collapse: collapse; }
   .pwrap > thead { display: table-header-group; } .pwrap > tfoot { display: table-footer-group; } .pwrap > tbody { display: table-row-group; }
-  .pwrap tr { display: table-row; } .pwrap td { display: table-cell; padding: 0; }
+  .pwrap > * > tr { display: table-row; } .pwrap > * > tr > td { display: table-cell; padding: 0; }
   .pwrap td.pbody { padding: 0 12mm 0 14mm; }
   .pwrap .psp { height: 13mm; }
   table.ctab td.tk input { display: none; }

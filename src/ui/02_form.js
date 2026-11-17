@@ -200,7 +200,7 @@ function runDesign(kind) {
     changed(true);
     const after = `${fmt(S.geom.b, 0)}×${fmt(S.geom.h, 0)} mm, ${esc(S.mat.cls === 'U' ? 'materiał własny' : S.mat.cls)}`;
     let msg = `Dobrano (${secs} s): <b>${after}</b> (było: ${before}); największe wytężenie η = <b>${fmt(r.eta * 100, 0)}%</b> ≤ ${S.design.eta}%.`;
-    if (r.list && r.list.length > 1) msg += `<br><span class="hint">Warianty: ${r.list.map(q => `${esc(q.cls)} ${q.b}×${q.h} (η = ${fmt(q.eta * 100, 0)}%)`).join(' · ')}</span>`;
+    if (r.list && r.list.length > 1) msg += ` <br><span class="hint">Warianty: ${r.list.map(q => `${esc(q.cls)} ${q.b}×${q.h} (η = ${fmt(q.eta * 100, 0)}%)`).join(' · ')}</span>`;
     toast(msg.replace(/<[^>]+>/g, ''), 5200);
   }, 30);
 }
